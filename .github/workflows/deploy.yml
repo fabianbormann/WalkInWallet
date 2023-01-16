@@ -1,0 +1,16 @@
+name: Deploy to Firebase Hosting and Functions
+'on': pull_request
+jobs:
+  build_and_preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.head_commit.message, 'release-please--branches--main') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci && npm run build
+      - name: download deps
+        working-directory: functions
+        run: npm install
+      - name: deploy
+        run: npx firebase-tools deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WALKINWALLET }}
