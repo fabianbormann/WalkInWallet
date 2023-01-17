@@ -4,7 +4,7 @@ on:
     branches: ['main']
 jobs:
   build_and_deploy:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.head_commit.message, 'release-please--branches--main') }}
+    # if: "contains(github.event.head_commit.message, 'release-please--branches--main')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
