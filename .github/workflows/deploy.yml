@@ -13,6 +13,6 @@ jobs:
         working-directory: functions
         run: npm install
       - name: deploy
-        run: npx firebase-tools deploy
+        run: npm i -g firebase-tools deploy --token "$FIREBASE_TOKEN"
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WALKINWALLET }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
