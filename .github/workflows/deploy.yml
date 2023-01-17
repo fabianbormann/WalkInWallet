@@ -8,11 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: npm ci && npm run build
-      - name: download deps
+      - name: install dependencies and build the website
+        run: npm ci && npm run build
+      - name: install function dependencies
         working-directory: ./functions
         run: npm ci
-      - name: deploy
-        run: npm i -g firebase-tools deploy --token "$FIREBASE_TOKEN"
+      - name: Deploy to Firebase
+        uses: joinflux/firebase-tools@master
+        with:
+          args: deploy --only hosting,functions
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
