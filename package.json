@@ -1,6 +1,6 @@
 {
   "name": "walkinwallet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "GPLv3",
   "dependencies": {
     "@babylonjs/core": "^5.42.1",

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.0.0...v1.0.1) (2023-01-18)
+
+
+### Bug Fixes
+
+* deploy only on PR for main ([8a1a301](https://github.com/fabianbormann/WalkInWallet/commit/8a1a3012b6b4340d4155c8d9443d9276f060876f))
+* remove function deployment for now ([a8b7985](https://github.com/fabianbormann/WalkInWallet/commit/a8b798515b15be34104df944055f1653cccb32a5))
+* repair deployment workflow ([988facb](https://github.com/fabianbormann/WalkInWallet/commit/988facb615c68b22d9d33576bc579bfc3290d31b))
+* repair deployment workflow ([7b354b1](https://github.com/fabianbormann/WalkInWallet/commit/7b354b14806aaaff51960ef80a9f4c091d85ec68))
+
 ## 1.0.0 (2023-01-17)
 
 
