@@ -7,15 +7,18 @@ jobs:
     # if: "contains(github.event.head_commit.message, 'release-please--branches--main')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: install dependencies and build the website
-        run: npm ci && npm run build
-      - name: install function dependencies
-        working-directory: ./functions
-        run: npm ci
-      - name: Deploy to Firebase
-        uses: joinflux/firebase-tools@master
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v2
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v1
         with:
-          args: deploy --only hosting,functions
+          node-version: 16
+
+      - name: 📥 Download deps
+        run: npm ci && npm run build
+
+      - name: 🚀 Deploy
+        run: npx firebase-tools deploy --token "$FIREBASE_TOKEN" --only hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
