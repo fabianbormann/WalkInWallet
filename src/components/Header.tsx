@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderProps } from '../global/types';
 import { getEllipsisText } from '../helper';
+import { NetworkType } from '@cardano-foundation/cardano-connect-with-wallet-core';
 
 const Logo = styled('div')<{ image: string; flip?: boolean }>(
   ({ theme, image, flip }) => ({
@@ -57,7 +58,16 @@ const Header = (props: HeaderProps) => {
 
   const theme = useTheme();
   const navigate = useNavigate();
-  const { stakeAddress } = useCardano();
+  const {
+    isEnabled,
+    isConnected,
+    enabledWallet,
+    stakeAddress,
+    signMessage,
+    connect,
+    disconnect,
+    usedAddresses,
+  } = useCardano({ limitNetwork: NetworkType.TESTNET });
 
   const logoImage =
     props.logoType === 'back' ? 'WalkInWallet_Arrow_Small.png' : 'logo.png';
@@ -120,6 +130,7 @@ const Header = (props: HeaderProps) => {
         <span style={{ flexGrow: 1 }} />
         <ConnectWalletButton
           customActions={actions}
+          limitNetwork={NetworkType.TESTNET}
           primaryColor={theme.palette.primary.main}
           borderRadius={4}
           customCSS={`

@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { setupCache } from 'axios-cache-interceptor';
 import React, { useEffect, useCallback, useState } from 'react';
 import { buildGallery } from './3d/MapGenerator';
 import { hangPaintings } from './3d/PaintingDrawer';
@@ -12,12 +13,22 @@ import {
   useParams,
 } from 'react-router-dom';
 import { FAQ, Welcome, Benefits } from './pages';
-import { NftFetchResponse, Picture, Room } from './global/types';
+import {
+  NFTDetail,
+  NftDetailResponse,
+  NftFetchResponse,
+  Picture,
+  Room,
+} from './global/types';
 
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { Grid, SxProps, useTheme } from '@mui/material';
+
+/*const axios = setupCache(Axios, {
+  ttl: 15 * 60 * 1000,
+});*/
 
 function CircularProgressWithLabel({
   value,
@@ -73,25 +84,47 @@ const Main = () => {
 
     if (typeof address === 'undefined') return;
     try {
-      const apiUrl =
-        process.env.NODE_ENV === 'production'
-          ? `https://us-central1-walkinwallet.cloudfunctions.net/api/nfts/${address}`
-          : `http://localhost:5001/walkinwallet/us-central1/api/nfts/${address}`;
+      const nftFetchResponse = (
+        await axios.post('https://api.koios.rest/api/v0/account_assets', {
+          _stake_addresses: [address],
+        })
+      ).data[0] as NftFetchResponse;
 
-      const response = (await axios.get(apiUrl)).data as NftFetchResponse;
+      console.log(nftFetchResponse);
 
-      pictures = [
-        ...pictures,
-        ...response.map(
-          (result) =>
-            ({
-              name: result.name,
-              image: result.image,
-              link: result.url,
-              description: result.description,
-            } as Picture)
-        ),
-      ];
+      const nftDetailResponse = (
+        await axios.post('https://api.koios.rest/api/v0/asset_info', {
+          _asset_list: nftFetchResponse.asset_list.map((asset) => [
+            asset.policy_id,
+            asset.asset_name,
+          ]),
+        })
+      ).data as NftDetailResponse;
+
+      for (const nftDetail of nftDetailResponse) {
+        const policyIds = nftDetail.minting_tx_metadata?.['721'];
+        if (typeof policyIds !== 'undefined') {
+          for (const policyId of Object.keys(policyIds)) {
+            const assets = nftDetail.minting_tx_metadata?.['721'][policyId];
+            for (const assetName of Object.keys(assets)) {
+              const asset = assets[assetName];
+              if (asset.name && assetName === nftDetail.asset_name_ascii) {
+                pictures = [
+                  ...pictures,
+                  {
+                    name: asset.name,
+                    image: asset.image,
+                    link: asset.website || asset.url || asset.Website || '',
+                    description: asset.description || asset.Description || '',
+                  } as Picture,
+                ];
+              }
+            }
+          }
+        }
+      }
+
+      console.log(pictures);
     } catch (error) {
       console.error(error);
     }
@@ -118,17 +151,7 @@ const Main = () => {
     const fetchImage = async (url: string) => {
       let location = url;
       if (location.startsWith('ipfs://')) {
-        location = location.replace(
-          'ipfs://',
-          'https://gateway.pinata.cloud/ipfs/'
-        );
-      }
-
-      if (location.startsWith('https://ipfs.io/')) {
-        location = location.replace(
-          'https://ipfs.io/',
-          'https://gateway.pinata.cloud/ipfs/'
-        );
+        location = location.replace('ipfs://', 'https://ipfs.io/ipfs/');
       }
 
       try {

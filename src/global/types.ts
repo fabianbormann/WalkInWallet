@@ -27,12 +27,49 @@ export type HeaderProps = {
   logoType?: 'full' | 'back';
 };
 
-export type NftFetchResponse = Array<{
-  name: string;
-  image: string;
-  url: string;
-  description: string;
-}>;
+export type NftFetchResponse = {
+  stake_address: string;
+  asset_list: Array<{
+    decimals: number;
+    quantity: number;
+    policy_id: string;
+    asset_name: string;
+    fingerprint: string;
+  }>;
+};
+
+export type NFTDetail = {
+  policy_id: string;
+  asset_name: string;
+  asset_name_ascii: string;
+  fingerprint: string;
+  minting_tx_hash: string;
+  total_supply: number;
+  mint_cnt: number;
+  burn_cnt: number;
+  creation_time: number;
+  minting_tx_metadata: {
+    [metadataLabel: string]: {
+      [policyId: string]: {
+        [assetName: string]: {
+          name: string;
+          image: string;
+          [key: string]: any;
+        };
+      };
+    };
+  };
+  token_registry_metadata: {
+    url: string;
+    logo: string;
+    name: string;
+    ticker: string;
+    decimals: 0;
+    description: string;
+  };
+};
+
+export type NftDetailResponse = Array<NFTDetail>;
 
 export enum RoomType {
   LEFT_OPEN,

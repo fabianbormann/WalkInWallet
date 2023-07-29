@@ -133,7 +133,7 @@ const Welcome = () => {
             sx={{ width: 300 }}
             onClick={() => {
               window.location.href =
-                '/addr1qxckxc9rap6ypl6f3ry83ec47u060wh706wrypdyeapmt37gnrd39mmm4wuzt9m8vvpl2tvfw4hc75q0tf2yv9vcyvsst8wu6z';
+                '/stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4';
             }}
           >
             <CardMedia
@@ -150,7 +150,7 @@ const Welcome = () => {
                   alignItems: 'center',
                 }}
               >
-                <Blockie address="addr1qxckxc9rap6ypl6f3ry83ec47u060wh706wrypdyeapmt37gnrd39mmm4wuzt9m8vvpl2tvfw4hc75q0tf2yv9vcyvsst8wu6z" />
+                <Blockie address="stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4" />
                 <Box
                   sx={{
                     marginLeft: '16px',
@@ -173,10 +173,10 @@ const Welcome = () => {
                       color: theme.palette.secondary.main,
                       fontSize: '0.9rem',
                     }}
-                    to="/addr1qxckxc9rap6ypl6f3ry83ec47u060wh706wrypdyeapmt37gnrd39mmm4wuzt9m8vvpl2tvfw4hc75q0tf2yv9vcyvsst8wu6z"
+                    to="/stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4"
                   >
                     {getEllipsisText(
-                      'addr1qxckxc9rap6ypl6f3ry83ec47u060wh706wrypdyeapmt37gnrd39mmm4wuzt9m8vvpl2tvfw4hc75q0tf2yv9vcyvsst8wu6z',
+                      'stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4',
                       10
                     )}
                   </Link>

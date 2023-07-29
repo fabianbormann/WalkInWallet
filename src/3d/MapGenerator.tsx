@@ -195,7 +195,7 @@ const buildGallery = (hash: string, paintings: number) => {
   let requiredSpace = paintings + MARGIN;
 
   while (space < requiredSpace) {
-    const options = rooms.filter((room) => room.extensions < 2);
+    const options = rooms.filter((room) => room.extensions < 4);
     const choice = options[Math.floor(random() * options.length)];
 
     const sides = ['above', 'below', 'left', 'right'].filter(
