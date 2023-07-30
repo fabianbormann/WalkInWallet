@@ -84,22 +84,60 @@ const Main = () => {
 
     if (typeof address === 'undefined') return;
     try {
-      const nftFetchResponse = (
-        await axios.post('https://api.koios.rest/api/v0/account_assets', {
-          _stake_addresses: [address],
-        })
-      ).data[0] as NftFetchResponse;
+      let stakeAddress = address;
+      if (address.startsWith('addr')) {
+        try {
+          const stakeAddressResponse = (
+            await axios.post(`https://api.koios.rest/api/v0/address_info`, {
+              _addresses: [address],
+            })
+          ).data;
+          stakeAddress = stakeAddressResponse[0].stake_address;
+        } catch (error) {
+          console.error(error);
+        }
+      } else if (address.startsWith('$')) {
+        const policyID =
+          'f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a';
+        const assetName = Buffer.from(address.slice(1)).toString('hex');
+        const paymentAddress = (
+          await axios.get(
+            `https://api.koios.rest/api/v0/asset_nft_addresss?_asset_policy=${policyID}&_asset_name=${assetName}`
+          )
+        ).data[0].payment_address;
 
-      console.log(nftFetchResponse);
+        const stakeAddressResponse = (
+          await axios.post(`https://api.koios.rest/api/v0/address_info`, {
+            _addresses: [paymentAddress],
+          })
+        ).data;
+        stakeAddress = stakeAddressResponse[0].stake_address;
+      }
 
-      const nftDetailResponse = (
-        await axios.post('https://api.koios.rest/api/v0/asset_info', {
-          _asset_list: nftFetchResponse.asset_list.map((asset) => [
-            asset.policy_id,
-            asset.asset_name,
-          ]),
-        })
-      ).data as NftDetailResponse;
+      let nftDetailResponse = null;
+
+      if (address.startsWith('stake')) {
+        const nftFetchResponse = (
+          await axios.post('https://api.koios.rest/api/v0/account_assets', {
+            _stake_addresses: [stakeAddress],
+          })
+        ).data[0] as NftFetchResponse;
+
+        nftDetailResponse = (
+          await axios.post('https://api.koios.rest/api/v0/asset_info', {
+            _asset_list: nftFetchResponse.asset_list.map((asset) => [
+              asset.policy_id,
+              asset.asset_name,
+            ]),
+          })
+        ).data as NftDetailResponse;
+      } else {
+        nftDetailResponse = (
+          await axios.get(
+            `https://api.koios.rest/api/v0/policy_asset_info?_asset_policy=${stakeAddress}`
+          )
+        ).data as NftDetailResponse;
+      }
 
       for (const nftDetail of nftDetailResponse) {
         const policyIds = nftDetail.minting_tx_metadata?.['721'];
@@ -123,8 +161,6 @@ const Main = () => {
           }
         }
       }
-
-      console.log(pictures);
     } catch (error) {
       console.error(error);
     }
