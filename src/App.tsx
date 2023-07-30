@@ -1,5 +1,4 @@
 import axios, { AxiosError } from 'axios';
-import { setupCache } from 'axios-cache-interceptor';
 import React, { useEffect, useCallback, useState } from 'react';
 import { buildGallery } from './3d/MapGenerator';
 import { hangPaintings } from './3d/PaintingDrawer';
@@ -13,22 +12,19 @@ import {
   useParams,
 } from 'react-router-dom';
 import { FAQ, Welcome, Benefits } from './pages';
-import {
-  NFTDetail,
-  NftDetailResponse,
-  NftFetchResponse,
-  Picture,
-  Room,
-} from './global/types';
+import { Picture, Room } from './global/types';
 
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { Grid, SxProps, useTheme } from '@mui/material';
-
-/*const axios = setupCache(Axios, {
-  ttl: 15 * 60 * 1000,
-});*/
+import {
+  extractNFTsFromNFTDetailResponse,
+  getNFTsFromPolicyId,
+  getNFTsFromStakeAddress,
+  getStakeAddressFromAdaHandle,
+  getStakeAddressFromPaymentAddress,
+} from './global/api';
 
 function CircularProgressWithLabel({
   value,
@@ -86,81 +82,19 @@ const Main = () => {
     try {
       let stakeAddress = address;
       if (address.startsWith('addr')) {
-        try {
-          const stakeAddressResponse = (
-            await axios.post(`https://api.koios.rest/api/v0/address_info`, {
-              _addresses: [address],
-            })
-          ).data;
-          stakeAddress = stakeAddressResponse[0].stake_address;
-        } catch (error) {
-          console.error(error);
-        }
+        stakeAddress = await getStakeAddressFromPaymentAddress(address);
       } else if (address.startsWith('$')) {
-        const policyID =
-          'f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a';
-        const assetName = Buffer.from(address.slice(1)).toString('hex');
-        const paymentAddress = (
-          await axios.get(
-            `https://api.koios.rest/api/v0/asset_nft_addresss?_asset_policy=${policyID}&_asset_name=${assetName}`
-          )
-        ).data[0].payment_address;
-
-        const stakeAddressResponse = (
-          await axios.post(`https://api.koios.rest/api/v0/address_info`, {
-            _addresses: [paymentAddress],
-          })
-        ).data;
-        stakeAddress = stakeAddressResponse[0].stake_address;
+        stakeAddress = await getStakeAddressFromAdaHandle(address);
       }
 
-      let nftDetailResponse = null;
-
-      if (address.startsWith('stake')) {
-        const nftFetchResponse = (
-          await axios.post('https://api.koios.rest/api/v0/account_assets', {
-            _stake_addresses: [stakeAddress],
-          })
-        ).data[0] as NftFetchResponse;
-
-        nftDetailResponse = (
-          await axios.post('https://api.koios.rest/api/v0/asset_info', {
-            _asset_list: nftFetchResponse.asset_list.map((asset) => [
-              asset.policy_id,
-              asset.asset_name,
-            ]),
-          })
-        ).data as NftDetailResponse;
+      let nftDetailResponse = [];
+      if (stakeAddress.startsWith('stake')) {
+        nftDetailResponse = await getNFTsFromStakeAddress(stakeAddress);
       } else {
-        nftDetailResponse = (
-          await axios.get(
-            `https://api.koios.rest/api/v0/policy_asset_info?_asset_policy=${stakeAddress}`
-          )
-        ).data as NftDetailResponse;
+        nftDetailResponse = await getNFTsFromPolicyId(stakeAddress);
       }
 
-      for (const nftDetail of nftDetailResponse) {
-        const policyIds = nftDetail.minting_tx_metadata?.['721'];
-        if (typeof policyIds !== 'undefined') {
-          for (const policyId of Object.keys(policyIds)) {
-            const assets = nftDetail.minting_tx_metadata?.['721'][policyId];
-            for (const assetName of Object.keys(assets)) {
-              const asset = assets[assetName];
-              if (asset.name && assetName === nftDetail.asset_name_ascii) {
-                pictures = [
-                  ...pictures,
-                  {
-                    name: asset.name,
-                    image: asset.image,
-                    link: asset.website || asset.url || asset.Website || '',
-                    description: asset.description || asset.Description || '',
-                  } as Picture,
-                ];
-              }
-            }
-          }
-        }
-      }
+      pictures = await extractNFTsFromNFTDetailResponse(nftDetailResponse);
     } catch (error) {
       console.error(error);
     }
