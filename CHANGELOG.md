@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.0.1...v1.1.0) (2023-07-30)
+
+
+### Features
+
+* use koios community service instead of blockfrost ([8dcf2f0](https://github.com/fabianbormann/WalkInWallet/commit/8dcf2f0cbbf9bc25a56b14138d9f9cc547fa95ea))
+
+
+### Bug Fixes
+
+* remove functions folder and adjust deployment to use koios instead of blockfrost ([6239d53](https://github.com/fabianbormann/WalkInWallet/commit/6239d533a80811015ace3b656e5b999f18c6b2b1))
+
 ## [1.0.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.0.0...v1.0.1) (2023-01-18)
 
 
