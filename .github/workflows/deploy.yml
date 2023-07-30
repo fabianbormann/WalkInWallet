@@ -1,9 +1,9 @@
-name: Deploy to Firebase Hosting and Functions
+name: Deploy to Firebase Hosting
 on:
   pull_request:
     branches: ['main']
 jobs:
-  build_and_deploy:
+  deploy:
     if: "contains(github.event.head_commit.message, 'release-please--branches--main')"
     runs-on: ubuntu-latest
     steps:
@@ -22,13 +22,3 @@ jobs:
         run: npx firebase-tools deploy --token "$FIREBASE_TOKEN" --only hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      # - name: 📥 Download functions dependencies
-      #   working-directory: functions
-      #   run: npm ci
-
-      # - name: 🛰 Deploy functions
-      #   working-directory: .
-      #   run: npx firebase-tools@10.9.2 deploy --token "$FIREBASE_TOKEN" --only functions
-      #   env:
-      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
