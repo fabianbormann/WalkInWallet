@@ -36,7 +36,7 @@ const Main = () => {
 
   const fetchNFTs = useCallback(async () => {
     let pictures: Array<Picture> = [];
-    let availablePages = 0;
+    let availablePages = 1;
 
     if (typeof address === 'undefined') return;
     try {
@@ -69,7 +69,7 @@ const Main = () => {
     setProgress(21);
     setStage('Collecting NFT metadata and read images');
 
-    const rooms = buildGallery(address, pictures.length, parseInt(page || '0'));
+    const rooms = buildGallery(address, pictures.length, parseInt(page || '1'));
 
     setGallery(rooms);
     setNfts(pictures);
@@ -82,7 +82,7 @@ const Main = () => {
   useEffect(() => {
     setNfts([]);
     setPaintings([]);
-    setTotalPages(0);
+    setTotalPages(1);
     setGallery(undefined);
     setStage('Read wallet');
     setSceneVisible(false);
@@ -124,8 +124,9 @@ const Main = () => {
           direction="column"
         >
           <Typography>
-            This wallet does not contain any NFT, or it is not a correct wallet
-            address.
+            This wallet does not appear to contain any NFTs, or the provided
+            wallet address is incorrect. Please double-check the address and try
+            again.
           </Typography>
           <Link style={{ color: theme.palette.secondary.main }} to="/">
             Go back
@@ -155,7 +156,7 @@ const Main = () => {
           gallery={gallery}
           paintings={paintings}
           nfts={nfts}
-          page={parseInt(page || '0')}
+          page={parseInt(page || '1')}
           totalPages={totalPages}
           address={address || ''}
         />

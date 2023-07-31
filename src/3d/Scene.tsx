@@ -447,13 +447,26 @@ const MainScene = ({
     >
       <BackIcon
         onClick={() => {
-          if (page === 0) {
+          if (page === 1) {
             navigate('/', { replace: true });
           } else {
             navigate(`/${address}/${page - 1}`, { replace: true });
           }
         }}
       />
+
+      <Typography
+        variant="h6"
+        sx={{
+          color: theme.palette.primary.main,
+          position: 'absolute',
+          top: 12,
+          fontWeight: 'bolder',
+          left: 'calc(50% - 42px - 8px)',
+        }}
+      >
+        Room {page} / {totalPages}
+      </Typography>
 
       {page < totalPages && (
         <NextIcon

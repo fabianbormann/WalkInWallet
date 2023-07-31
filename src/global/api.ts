@@ -92,10 +92,10 @@ export const extractNFTsFromNFTDetailResponse = (
   let offset = 0;
   let paintingsPerPage = 10;
   if (typeof page !== 'undefined') {
-    offset = parseInt(page) * paintingsPerPage;
+    offset = (parseInt(page) - 1) * paintingsPerPage;
   }
 
-  const totalPages = Math.ceil(pictures.length / paintingsPerPage) - 1;
+  const totalPages = Math.ceil(pictures.length / paintingsPerPage);
   pictures = pictures.slice(offset, offset + paintingsPerPage);
 
   return { pictures, totalPages };

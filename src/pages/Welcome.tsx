@@ -84,8 +84,10 @@ const Welcome = () => {
                 marginBottom: 4,
               }}
             >
-              Enter a Cardano Public or Stake Address to Visit a Generated
-              Gallery. No manual configuration required.
+              Enter a Cardano Stake Address, Payment Address, or a Policy ID to
+              visit a generated gallery. You'll have the freedom to explore and
+              move around the gallery seamlessly, all without the need for any
+              manual configuration.
             </Typography>
             <Paper component="form" sx={{ display: 'flex' }}>
               <InputBase

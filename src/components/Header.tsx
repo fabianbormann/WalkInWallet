@@ -58,7 +58,7 @@ const Header = (props: HeaderProps) => {
 
   const theme = useTheme();
   const navigate = useNavigate();
-  const { stakeAddress } = useCardano({ limitNetwork: NetworkType.MAINNET });
+  const { stakeAddress } = useCardano();
 
   const logoImage =
     props.logoType === 'back' ? 'WalkInWallet_Arrow_Small.png' : 'logo.png';
@@ -121,7 +121,7 @@ const Header = (props: HeaderProps) => {
         <span style={{ flexGrow: 1 }} />
         <ConnectWalletButton
           customActions={actions}
-          limitNetwork={NetworkType.TESTNET}
+          limitNetwork={NetworkType.MAINNET}
           primaryColor={theme.palette.primary.main}
           borderRadius={4}
           customCSS={`
