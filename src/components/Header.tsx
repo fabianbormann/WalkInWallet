@@ -58,16 +58,7 @@ const Header = (props: HeaderProps) => {
 
   const theme = useTheme();
   const navigate = useNavigate();
-  const {
-    isEnabled,
-    isConnected,
-    enabledWallet,
-    stakeAddress,
-    signMessage,
-    connect,
-    disconnect,
-    usedAddresses,
-  } = useCardano({ limitNetwork: NetworkType.TESTNET });
+  const { stakeAddress } = useCardano({ limitNetwork: NetworkType.MAINNET });
 
   const logoImage =
     props.logoType === 'back' ? 'WalkInWallet_Arrow_Small.png' : 'logo.png';

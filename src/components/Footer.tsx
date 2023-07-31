@@ -1,10 +1,9 @@
 import React from 'react';
 import { createSvgIcon, Grid, IconButton, useTheme } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import EmailIcon from '@mui/icons-material/Email';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 const Footer = () => {
   const theme = useTheme();
@@ -37,26 +36,24 @@ const Footer = () => {
         }}
       >
         <Grid sx={{ mt: 1 }}>
-          <IconButton
-            href="https://www.instagram.com/walkinwallet/"
-            target="_blank"
-          >
-            <InstagramIcon sx={{ color: 'white' }} />
-          </IconButton>
           <IconButton href="https://twitter.com/walkinwallet" target="_blank">
             <TwitterIcon sx={{ color: 'white' }} />
           </IconButton>
           <IconButton href="https://discord.gg/zRUB42UPmB" target="_blank">
             <DiscordIcon />
           </IconButton>
-          <IconButton
-            href="https://www.linkedin.com/company/walkinwallet/"
-            target="_blank"
-          >
-            <LinkedInIcon sx={{ color: 'white' }} />
-          </IconButton>
           <IconButton href="mailto:contact@walkinwallet.com" target="_blank">
             <EmailIcon sx={{ color: 'white' }} />
+          </IconButton>
+          <IconButton
+            href={
+              process.env.REACT_APP_VERSION
+                ? `https://github.com/fabianbormann/WalkInWallet/releases/tag/v${process.env.REACT_APP_VERSION}`
+                : 'https://github.com/fabianbormann/WalkInWallet'
+            }
+            target="_blank"
+          >
+            <GitHubIcon sx={{ color: 'white' }} />
           </IconButton>
         </Grid>
         <Grid
