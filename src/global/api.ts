@@ -60,7 +60,8 @@ export const getNFTsFromPolicyId = async (policyId: string) => {
 };
 
 export const extractNFTsFromNFTDetailResponse = (
-  nftDetailResponse: NftDetailResponse
+  nftDetailResponse: NftDetailResponse,
+  page?: string
 ) => {
   let pictures: Array<Picture> = [];
   for (const nftDetail of nftDetailResponse) {
@@ -76,7 +77,9 @@ export const extractNFTsFromNFTDetailResponse = (
               {
                 name: asset.name,
                 image: asset.image,
-                link: asset.website || asset.url || asset.Website || '',
+                link: `https://www.jpg.store/asset/${policyId}${Buffer.from(
+                  assetName
+                ).toString('hex')}`,
                 description: asset.description || asset.Description || '',
               } as Picture,
             ];
@@ -85,7 +88,17 @@ export const extractNFTsFromNFTDetailResponse = (
       }
     }
   }
-  return pictures;
+
+  let offset = 0;
+  let paintingsPerPage = 10;
+  if (typeof page !== 'undefined') {
+    offset = parseInt(page) * paintingsPerPage;
+  }
+
+  const totalPages = Math.ceil(pictures.length / paintingsPerPage) - 1;
+  pictures = pictures.slice(offset, offset + paintingsPerPage);
+
+  return { pictures, totalPages };
 };
 
 export const loadPaintings = async (

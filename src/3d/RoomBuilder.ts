@@ -19,7 +19,7 @@ const createRoomTile = (
 ) => {
   const wallMaterial = new PBRMetallicRoughnessMaterial('wallMaterial', scene);
   const wallBaseTexture = new Texture(
-    './textures/Wallpaper_Glassweave_001_basecolor.jpg',
+    '/textures/Wallpaper_Glassweave_001_basecolor.jpg',
     null
   );
 
@@ -31,7 +31,7 @@ const createRoomTile = (
   wallMaterial.baseTexture = wallBaseTexture;
 
   const wallMetallicRoughnessTexture = new Texture(
-    './textures/Wallpaper_Glassweave_001_roughness.jpg',
+    '/textures/Wallpaper_Glassweave_001_roughness.jpg',
     null
   );
 
@@ -41,7 +41,7 @@ const createRoomTile = (
   wallMaterial.metallicRoughnessTexture = wallMetallicRoughnessTexture;
 
   const wallNormalTexture = new Texture(
-    './textures/Wallpaper_Glassweave_001_normal.jpg',
+    '/textures/Wallpaper_Glassweave_001_normal.jpg',
     null
   );
 

@@ -30,25 +30,13 @@ import { styled } from '@mui/system';
 import { Grid, Link, Typography, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
+import { BackIcon, NextIcon } from '../components/Buttons';
 
 const FullView = styled('div')({
   height: '100%',
   width: '100%',
   overflow: 'hidden',
   outline: 'none',
-});
-
-const BackIcon = styled('div')({
-  backgroundImage: 'url(./WalkInWallet_Arrow_Small.png)',
-  position: 'absolute',
-  top: 8,
-  left: 8,
-  height: 42,
-  width: 42,
-  backgroundSize: 'contain',
-  transform: 'scaleX(-1)',
-  cursor: 'pointer',
-  zIndex: 3,
 });
 
 const Hud = styled(`div`)({
@@ -66,6 +54,9 @@ const MainScene = ({
   nfts,
   onSceneReady,
   isVisible,
+  page,
+  totalPages,
+  address,
 }: SceneProps) => {
   const CAMERA_HEIGHT = 40;
   const [hudDisplayVisible, setHudDisplayVisible] = useState(false);
@@ -219,23 +210,6 @@ const MainScene = ({
       pointLight.falloffType = Light.FALLOFF_STANDARD;
       pointLight.range = 250;
       pointLight.intensity = 1.8;
-
-      const loadingTexture = new Texture('./loading_animation.png', mainScene);
-
-      loadingTexture.uScale = -1 / 10;
-      loadingTexture.vScale = 1;
-      loadingTexture.uOffset = 0;
-      loadingTexture.vOffset = 1;
-      loadingTexture.name = 'LoadingTexture';
-
-      setInterval(() => {
-        if (loadingTexture.uOffset >= 1 - 2 / 10) {
-          loadingTexture.uOffset = 0;
-        } else {
-          loadingTexture.uOffset = loadingTexture.uOffset + 1 / 10;
-        }
-      }, 1000);
-
       mainScene.clearColor = new Color4(0, 0, 0, 1);
 
       const ground = MeshBuilder.CreatePlane(
@@ -247,7 +221,7 @@ const MainScene = ({
 
       const groundMaterial = new StandardMaterial('ground', mainScene);
       const groundDiffuseTexture = new Texture(
-        './textures/Marble_White_006_basecolor.jpg',
+        '/textures/Marble_White_006_basecolor.jpg',
         mainScene
       );
 
@@ -354,6 +328,32 @@ const MainScene = ({
   }, [mainScene, initialized, onSceneReady, hasTouchScreen, gallery, nfts]);
 
   useEffect(() => {
+    let loadingTexture = mainScene?.getTextureByName(
+      'LoadingTexture'
+    ) as Texture;
+    if (!loadingTexture) {
+      loadingTexture = new Texture('/loading_animation.png', mainScene);
+
+      loadingTexture.uScale = -1 / 10;
+      loadingTexture.vScale = 1;
+      loadingTexture.uOffset = 0;
+      loadingTexture.vOffset = 1;
+      loadingTexture.name = 'LoadingTexture';
+    }
+
+    const intervalId = setInterval(() => {
+      if (loadingTexture.uOffset >= 1 - 2 / 10) {
+        loadingTexture.uOffset = 0;
+      } else {
+        loadingTexture.uOffset = loadingTexture.uOffset + 1 / 10;
+      }
+    }, 1000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  });
+
+  useEffect(() => {
     if (typeof mainScene !== 'undefined' && typeof paintings !== 'undefined') {
       for (const painting of paintings) {
         if (painting.position) {
@@ -447,9 +447,21 @@ const MainScene = ({
     >
       <BackIcon
         onClick={() => {
-          navigate('/', { replace: true });
+          if (page === 0) {
+            navigate('/', { replace: true });
+          } else {
+            navigate(`/${address}/${page - 1}`, { replace: true });
+          }
         }}
       />
+
+      {page < totalPages && (
+        <NextIcon
+          onClick={() => {
+            navigate(`/${address}/${page + 1}`, { replace: true });
+          }}
+        />
+      )}
 
       <SceneComponent
         style={{

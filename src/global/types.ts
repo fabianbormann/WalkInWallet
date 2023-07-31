@@ -129,4 +129,7 @@ export type SceneProps = {
   nfts: Array<Picture>;
   onSceneReady: () => void;
   isVisible: boolean;
+  page: number;
+  totalPages: number;
+  address: string;
 };

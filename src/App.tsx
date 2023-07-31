@@ -28,13 +28,15 @@ const Main = () => {
   const [sceneVisible, setSceneVisible] = useState(false);
   const [stage, setStage] = useState('Read wallet');
   const [nfts, setNfts] = useState<Array<Picture>>([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [gallery, setGallery] = useState<Array<Room>>();
   const [paintings, setPaintings] = useState<Array<Picture>>([]);
-  const { address } = useParams();
+  const { address, page } = useParams();
   const theme = useTheme();
 
   const fetchNFTs = useCallback(async () => {
     let pictures: Array<Picture> = [];
+    let availablePages = 0;
 
     if (typeof address === 'undefined') return;
     try {
@@ -46,13 +48,20 @@ const Main = () => {
       }
 
       let nftDetailResponse = [];
+
       if (stakeAddress.startsWith('stake')) {
         nftDetailResponse = await getNFTsFromStakeAddress(stakeAddress);
       } else {
         nftDetailResponse = await getNFTsFromPolicyId(stakeAddress);
       }
 
-      pictures = await extractNFTsFromNFTDetailResponse(nftDetailResponse);
+      const nftsToDisplay = await extractNFTsFromNFTDetailResponse(
+        nftDetailResponse,
+        page
+      );
+
+      pictures = nftsToDisplay.pictures;
+      availablePages = nftsToDisplay.totalPages;
     } catch (error) {
       console.error(error);
     }
@@ -60,20 +69,31 @@ const Main = () => {
     setProgress(21);
     setStage('Collecting NFT metadata and read images');
 
-    const rooms = buildGallery(address, pictures.length);
+    const rooms = buildGallery(address, pictures.length, parseInt(page || '0'));
+
     setGallery(rooms);
     setNfts(pictures);
+    setTotalPages(availablePages);
     hangPaintings(address, rooms, pictures);
     setStage('Rendering 3D gallery');
     setProgress(99);
-  }, [address]);
+  }, [address, page]);
 
   useEffect(() => {
     setNfts([]);
+    setPaintings([]);
+    setTotalPages(0);
+    setGallery(undefined);
     setStage('Read wallet');
+    setSceneVisible(false);
     setProgress(0);
-    fetchNFTs();
-  }, [fetchNFTs, address]);
+  }, [address, page]);
+
+  useEffect(() => {
+    if (nfts.length === 0) {
+      fetchNFTs();
+    }
+  }, [fetchNFTs, nfts]);
 
   useEffect(() => {
     if (sceneVisible && nfts.length > 0) {
@@ -89,7 +109,7 @@ const Main = () => {
 
   const onSceneReady = useCallback(() => setSceneVisible(true), []);
 
-  if (typeof nfts !== 'undefined' && typeof gallery !== 'undefined') {
+  if (typeof gallery !== 'undefined') {
     if (nfts.length === 0) {
       return (
         <Grid
@@ -135,6 +155,9 @@ const Main = () => {
           gallery={gallery}
           paintings={paintings}
           nfts={nfts}
+          page={parseInt(page || '0')}
+          totalPages={totalPages}
+          address={address || ''}
         />
       </Grid>
     );
@@ -162,6 +185,7 @@ const App = () => {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/benefits" element={<Benefits />} />
         <Route path="/:address" element={<Main />} />
+        <Route path="/:address/:page" element={<Main />} />
       </Routes>
     </Router>
   );

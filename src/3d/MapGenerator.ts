@@ -159,8 +159,8 @@ const recalculateSpace = (rooms: Array<Room>) => {
   return space;
 };
 
-const buildGallery = (hash: string, paintings: number) => {
-  const random = seedrandom(hash);
+const buildGallery = (hash: string, paintings: number, page: number) => {
+  const random = seedrandom(hash + page);
 
   let rooms: Array<Room> = [
     {
