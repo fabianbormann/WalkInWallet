@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.1.0...v1.2.0) (2023-07-31)
+
+
+### Features
+
+* add adahandle and policy_id support ([edb654b](https://github.com/fabianbormann/WalkInWallet/commit/edb654b862cc68ef96d1bdbf14b45a551d79c1e1))
+* add link to jpg.store ([f063491](https://github.com/fabianbormann/WalkInWallet/commit/f063491e9eb76065949dfaac5b282c52b0ae7272))
+* add room pagination and fix button connect with wallet settings ([cfe5c2e](https://github.com/fabianbormann/WalkInWallet/commit/cfe5c2e7fd3a50c45af03f8ea1a0c5a1b9d23a50))
+* use caching to prevent spamming koios with requests ([339dc4a](https://github.com/fabianbormann/WalkInWallet/commit/339dc4a42f3038e8e9fc9e1de2f1f29f14b0e985))
+
 ## [1.1.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.0.1...v1.1.0) (2023-07-30)
 
 
