@@ -121,6 +121,7 @@ const Header = (props: HeaderProps) => {
         <span style={{ flexGrow: 1 }} />
         <ConnectWalletButton
           customActions={actions}
+          peerConnectEnabled={true}
           limitNetwork={NetworkType.MAINNET}
           primaryColor={theme.palette.primary.main}
           borderRadius={4}
