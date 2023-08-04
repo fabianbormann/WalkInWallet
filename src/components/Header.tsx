@@ -120,6 +120,8 @@ const Header = (props: HeaderProps) => {
         </Logo>
         <span style={{ flexGrow: 1 }} />
         <ConnectWalletButton
+          dAppName="WalkInWallet"
+          dAppUrl="https://walkinwallet.com/"
           customActions={actions}
           peerConnectEnabled={true}
           limitNetwork={NetworkType.MAINNET}
