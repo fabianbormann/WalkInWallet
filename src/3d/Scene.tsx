@@ -351,7 +351,7 @@ const MainScene = ({
     return () => {
       clearInterval(intervalId);
     };
-  });
+  }, []);
 
   useEffect(() => {
     if (typeof mainScene !== 'undefined' && typeof paintings !== 'undefined') {

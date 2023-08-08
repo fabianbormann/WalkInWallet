@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Blockie from '../components/Blockie';
+import LoginIcon from '@mui/icons-material/Login';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { getEllipsisText } from '../helper';
@@ -152,7 +152,7 @@ const Welcome = () => {
                   alignItems: 'center',
                 }}
               >
-                <Blockie address="stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4" />
+                <LoginIcon color="secondary" />
                 <Box
                   sx={{
                     marginLeft: '16px',
