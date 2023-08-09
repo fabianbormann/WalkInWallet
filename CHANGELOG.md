@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.2.0...v1.3.0) (2023-08-08)
+
+
+### Features
+
+* enable CIP45 to connect wallets on mobile devices ([e0dbcba](https://github.com/fabianbormann/WalkInWallet/commit/e0dbcba66302d4e7f4557d3fe225af76f671181b))
+
+
+### Bug Fixes
+
+* update dependencies and connect-with-wallet button ([1460147](https://github.com/fabianbormann/WalkInWallet/commit/1460147eab338ee19072b81e17f94a3857f27857))
+
 ## [1.2.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.1.0...v1.2.0) (2023-07-31)
 
 
