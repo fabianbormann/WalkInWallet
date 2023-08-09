@@ -118,11 +118,6 @@ export type HudInfos = {
   link: string;
 };
 
-export type BlockieProps = {
-  address: string;
-  scale?: number;
-};
-
 export type SceneProps = {
   gallery: Array<Room>;
   paintings: Array<Picture>;
