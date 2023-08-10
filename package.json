@@ -12,7 +12,8 @@
   "dependencies": {
     "@babylonjs/core": "^6.15.0",
     "@babylonjs/loaders": "^6.15.0",
-    "@cardano-foundation/cardano-connect-with-wallet": "^0.2.4",
+    "@cardano-foundation/cardano-connect-with-wallet": "^0.2.5",
+    "@cardano-foundation/cardano-connect-with-wallet-core": "^0.2.3",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.14.3",
