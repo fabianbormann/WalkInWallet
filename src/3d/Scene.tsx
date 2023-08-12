@@ -16,6 +16,8 @@ import {
   PointerEventTypes,
   Scene,
   Color4,
+  ShadowGenerator,
+  SSAO2RenderingPipeline,
 } from '@babylonjs/core';
 
 import SceneComponent from 'babylonjs-hook';
@@ -92,6 +94,8 @@ const MainScene = ({
           mainScene
         );
 
+        mainScene.ambientColor = new Color3(0.2, 0.2, 0.2);
+        mainScene.shadowsEnabled = true;
         mainScene.onPrePointerObservable.add((pointerInfo) => {
           if (
             [
@@ -151,40 +155,13 @@ const MainScene = ({
       );
       light.diffuse = new Color3(1, 1, 1);
       light.specular = new Color3(0.2, 0.2, 0.2);
-      light.intensity = 1.5;
-
-      const pointLight = new PointLight(
-        'PointLight',
-        new Vector3(0, 30, 0),
-        mainScene
-      );
-      pointLight.falloffType = Light.FALLOFF_STANDARD;
-      pointLight.range = 25;
-      pointLight.intensity = 1.8;
+      light.intensity = 1.3;
 
       mainScene.clearColor = new Color4(0, 0, 0, 1);
 
-      const ground = MeshBuilder.CreatePlane(
-        'Ground',
-        { size: 100 * 20, sideOrientation: Mesh.FRONTSIDE },
-        mainScene
-      );
-      ground.rotation = new Vector3(Math.PI / 2, 0, 0);
-
-      const groundMaterial = new StandardMaterial('ground', mainScene);
-      const groundDiffuseTexture = new Texture(
-        '/textures/Marble_White_006_basecolor.jpg',
-        mainScene
-      );
-
-      groundDiffuseTexture.uScale = 40;
-      groundDiffuseTexture.vScale = 40;
-      groundMaterial.diffuseTexture = groundDiffuseTexture;
-      groundMaterial.specularColor = new Color3(0, 0, 0);
-
       const reflectionTexture = new MirrorTexture(
         'mirror',
-        512,
+        1024,
         mainScene,
         true
       );
@@ -192,9 +169,6 @@ const MainScene = ({
       reflectionTexture.mirrorPlane = new Plane(0, -1.0, 0, 0);
       reflectionTexture.level = 0.2;
       reflectionTexture.adaptiveBlurKernel = 15;
-
-      groundMaterial.reflectionTexture = reflectionTexture;
-      ground.material = groundMaterial;
 
       for (const room of gallery) {
         createRoomTile(
@@ -228,8 +202,6 @@ const MainScene = ({
       mainScene.executeWhenReady(() => onSceneReady());
       mainScene.registerBeforeRender(() => {
         camera.position.y = CAMERA_HEIGHT;
-        pointLight.position.x = camera.position.x;
-        pointLight.position.z = camera.position.z;
       });
       setInitialized(true);
     }
