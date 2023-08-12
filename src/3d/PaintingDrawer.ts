@@ -7,6 +7,7 @@ import {
   ExecuteCodeAction,
   ActionManager,
   MirrorTexture,
+  StandardMaterial,
 } from '@babylonjs/core';
 import { HudInfos, Picture, Room, RoomType } from '../global/types';
 import { Scene } from '@babylonjs/core';
@@ -229,7 +230,7 @@ const drawPainting = (
           }
 
           if (mesh.name === 'Painting') {
-            const paintingMaterial = new PBRMetallicRoughnessMaterial(
+            const paintingMaterial = new StandardMaterial(
               `Painting#material#${row}.${col}.${wall}.${side}#${
                 isRectangular ? 'rect' : 'square'
               }`,
@@ -239,10 +240,8 @@ const drawPainting = (
             const loadingTexture = scene.getTextureByName('LoadingTexture');
 
             if (loadingTexture) {
-              paintingMaterial.baseTexture = loadingTexture;
+              paintingMaterial.diffuseTexture = loadingTexture;
             }
-            paintingMaterial.metallic = 0.1;
-            paintingMaterial.roughness = 0.9;
 
             mesh.material = paintingMaterial;
             mesh.material.sideOrientation = Mesh.DOUBLESIDE;
@@ -254,36 +253,61 @@ const drawPainting = (
               link: painting.link,
             } as HudInfos;
 
-            if (isRectangular) {
-              mesh.actionManager = new ActionManager(scene);
-              const enterAction = new ExecuteCodeAction(
-                {
-                  trigger: ActionManager.OnIntersectionEnterTrigger,
-                  parameter: { mesh: scene.getMeshByName('collider') },
-                },
-                () => {
-                  setHudDisplayVisible(true);
-                  setHudInfos(hudInfos);
+            mesh.actionManager = new ActionManager(scene);
+            const enterAction = new ExecuteCodeAction(
+              {
+                trigger: ActionManager.OnIntersectionEnterTrigger,
+                parameter: { mesh: scene.getMeshByName('collider') },
+              },
+              () => {
+                const collider = scene.getMeshByName('collider');
+                if (collider) {
+                  collider.metadata = {
+                    collidedMeshes: meshes,
+                    removeCollidedMeshes: () => {
+                      for (const mesh of meshes) {
+                        console.log(mesh.name);
+                        mesh.material?.dispose();
+                        mesh.dispose();
+                        scene.removeMesh(mesh);
+                      }
+                      setHudDisplayVisible(false);
+                      setHudInfos({
+                        name: '',
+                        offline: true,
+                        description: '',
+                        link: '',
+                      });
+                      collider.metadata = null;
+                    },
+                    paintingName: painting.name,
+                  };
                 }
-              );
-              const exitAction = new ExecuteCodeAction(
-                {
-                  trigger: ActionManager.OnIntersectionExitTrigger,
-                  parameter: { mesh: scene.getMeshByName('collider') },
-                },
-                () => {
-                  setHudDisplayVisible(false);
-                  setHudInfos({
-                    name: '',
-                    offline: true,
-                    description: '',
-                    link: '',
-                  });
+                setHudDisplayVisible(true);
+                setHudInfos(hudInfos);
+              }
+            );
+            const exitAction = new ExecuteCodeAction(
+              {
+                trigger: ActionManager.OnIntersectionExitTrigger,
+                parameter: { mesh: scene.getMeshByName('collider') },
+              },
+              () => {
+                const collider = scene.getMeshByName('collider');
+                if (collider) {
+                  collider.metadata = null;
                 }
-              );
-              mesh.actionManager.registerAction(enterAction);
-              mesh.actionManager.registerAction(exitAction);
-            }
+                setHudDisplayVisible(false);
+                setHudInfos({
+                  name: '',
+                  offline: true,
+                  description: '',
+                  link: '',
+                });
+              }
+            );
+            mesh.actionManager.registerAction(enterAction);
+            mesh.actionManager.registerAction(exitAction);
           }
 
           if (mesh.name !== '__root__') {
@@ -297,7 +321,23 @@ const drawPainting = (
               mesh.visibility = 0;
             }
 
-            if (mesh.name.includes('Collider') && !isRectangular) {
+            mesh.metadata = {
+              removeGroup: () => {
+                for (const mesh of meshes) {
+                  mesh.material?.dispose();
+                  mesh.dispose();
+                  scene.removeMesh(mesh);
+                }
+                if (mesh.name === '__root__') {
+                  probe.renderList =
+                    probe.renderList?.filter(
+                      (probeMesh) => probeMesh !== mesh
+                    ) || [];
+                }
+              },
+            };
+
+            if (mesh.name.includes('Collider')) {
               mesh.isPickable = true;
             } else {
               mesh.isPickable = false;

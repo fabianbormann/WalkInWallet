@@ -7,6 +7,10 @@ import {
   Color3,
   Scene,
   MirrorTexture,
+  PointLight,
+  Light,
+  SceneLoader,
+  PBRMaterial,
 } from '@babylonjs/core';
 import { RoomType } from '../global/types';
 
@@ -68,6 +72,34 @@ const createRoomTile = (
   if (probe.renderList) {
     probe.renderList.push(ceiling);
   }
+
+  const pointLight = new PointLight(
+    'PointLight',
+    new Vector3(col * 100, 50, row * 100),
+    scene
+  );
+
+  pointLight.falloffType = Light.FALLOFF_STANDARD;
+  pointLight.range = 100;
+  pointLight.radius = 25;
+  pointLight.intensity = 1.5;
+  pointLight.diffuse = new Color3(1, 1, 1);
+  pointLight.specular = new Color3(0.5, 0.5, 0.5);
+
+  SceneLoader.ImportMesh('', '/models/', 'lamp.glb', scene, (meshes) => {
+    for (const mesh of meshes) {
+      if (mesh.name.endsWith('primitive2')) {
+        const material = mesh.material as PBRMaterial;
+        material.emissiveColor = new Color3(1, 1, 1);
+        material.emissiveIntensity = 1;
+      }
+
+      mesh.rotation = new Vector3(0, 0, 0);
+      mesh.scaling = new Vector3(1, 1, 1);
+      mesh.position = new Vector3(col * 50, 40.1, row * 50);
+    }
+  });
+
   const walls: Array<Mesh> = [];
 
   if (
@@ -160,6 +192,8 @@ const createRoomTile = (
       probe.renderList.push(wall);
     }
   }
+
+  pointLight.includedOnlyMeshes = [ceiling, ...walls];
 };
 
 export { createRoomTile };
