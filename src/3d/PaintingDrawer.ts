@@ -3,15 +3,21 @@ import {
   Vector3,
   SceneLoader,
   Mesh,
-  PBRMetallicRoughnessMaterial,
   ExecuteCodeAction,
   ActionManager,
   MirrorTexture,
-  StandardMaterial,
+  BackgroundMaterial,
+  Color3,
+  PBRMaterial,
 } from '@babylonjs/core';
 import { HudInfos, Picture, Room, RoomType } from '../global/types';
 import { Scene } from '@babylonjs/core';
 import { Dispatch, SetStateAction } from 'react';
+import {
+  registerEnterMeshAction,
+  registerExitMeshAction,
+  registerSpaceAction,
+} from './Inputs';
 
 const setupSlots = (rooms: Array<Room>) => {
   for (const room of rooms) {
@@ -226,16 +232,102 @@ const drawPainting = (
 
           if (mesh.name === 'Collider') {
             mesh.visibility = 0;
-            mesh.checkCollisions = true;
+            mesh.metadata = {
+              removeGroup: () => {
+                for (const part of meshes) {
+                  part.material?.dispose();
+                  part.dispose();
+                  scene.removeMesh(part);
+
+                  if (part.name === '__root__') {
+                    probe.renderList =
+                      probe.renderList?.filter(
+                        (probeMesh) => probeMesh !== part
+                      ) || [];
+                  }
+                }
+              },
+            };
+
+            registerSpaceAction([mesh], (source) => {
+              const collider = scene.getMeshByName('collider');
+
+              if (collider) {
+                collider.metadata?.removeCollidedMeshes();
+              }
+
+              setHudDisplayVisible(false);
+              setHudInfos({
+                name: '',
+                offline: true,
+                description: '',
+                link: '',
+              });
+            });
+
+            registerEnterMeshAction(scene, [mesh], () => {
+              const collider = scene.getMeshByName('collider');
+              if (collider) {
+                collider.metadata = {
+                  collidedMeshes: meshes,
+                  removeCollidedMeshes: () => {
+                    for (const mesh of meshes) {
+                      mesh.material?.dispose();
+                      mesh.dispose();
+                      scene.removeMesh(mesh);
+                    }
+                    setHudDisplayVisible(false);
+                    setHudInfos({
+                      name: '',
+                      offline: true,
+                      description: '',
+                      link: '',
+                    });
+                    collider.metadata = null;
+                  },
+                  paintingName: painting.name,
+                };
+              }
+
+              setHudDisplayVisible(true);
+              setHudInfos({
+                name: painting.name,
+                offline: painting.offline || true,
+                description: painting.description,
+                link: painting.link,
+              });
+            });
+
+            registerExitMeshAction(scene, [mesh], () => {
+              const collider = scene.getMeshByName('collider');
+              if (collider) {
+                collider.metadata = null;
+              }
+
+              setHudDisplayVisible(false);
+              setHudInfos({
+                name: '',
+                offline: true,
+                description: '',
+                link: '',
+              });
+            });
+          }
+
+          if (mesh.name === 'Passepartout') {
+            (mesh.material as PBRMaterial).emissiveColor = new Color3(1, 1, 1);
+            (mesh.material as PBRMaterial).emissiveIntensity = 0.3;
           }
 
           if (mesh.name === 'Painting') {
-            const paintingMaterial = new StandardMaterial(
+            const paintingMaterial = new BackgroundMaterial(
               `Painting#material#${row}.${col}.${wall}.${side}#${
                 isRectangular ? 'rect' : 'square'
               }`,
               scene
             );
+
+            paintingMaterial.opacityFresnel = false;
 
             const loadingTexture = scene.getTextureByName('LoadingTexture');
 
@@ -245,69 +337,6 @@ const drawPainting = (
 
             mesh.material = paintingMaterial;
             mesh.material.sideOrientation = Mesh.DOUBLESIDE;
-
-            const hudInfos = {
-              name: painting.name,
-              offline: painting.offline,
-              description: painting.description,
-              link: painting.link,
-            } as HudInfos;
-
-            mesh.actionManager = new ActionManager(scene);
-            const enterAction = new ExecuteCodeAction(
-              {
-                trigger: ActionManager.OnIntersectionEnterTrigger,
-                parameter: { mesh: scene.getMeshByName('collider') },
-              },
-              () => {
-                const collider = scene.getMeshByName('collider');
-                if (collider) {
-                  collider.metadata = {
-                    collidedMeshes: meshes,
-                    removeCollidedMeshes: () => {
-                      for (const mesh of meshes) {
-                        console.log(mesh.name);
-                        mesh.material?.dispose();
-                        mesh.dispose();
-                        scene.removeMesh(mesh);
-                      }
-                      setHudDisplayVisible(false);
-                      setHudInfos({
-                        name: '',
-                        offline: true,
-                        description: '',
-                        link: '',
-                      });
-                      collider.metadata = null;
-                    },
-                    paintingName: painting.name,
-                  };
-                }
-                setHudDisplayVisible(true);
-                setHudInfos(hudInfos);
-              }
-            );
-            const exitAction = new ExecuteCodeAction(
-              {
-                trigger: ActionManager.OnIntersectionExitTrigger,
-                parameter: { mesh: scene.getMeshByName('collider') },
-              },
-              () => {
-                const collider = scene.getMeshByName('collider');
-                if (collider) {
-                  collider.metadata = null;
-                }
-                setHudDisplayVisible(false);
-                setHudInfos({
-                  name: '',
-                  offline: true,
-                  description: '',
-                  link: '',
-                });
-              }
-            );
-            mesh.actionManager.registerAction(enterAction);
-            mesh.actionManager.registerAction(exitAction);
           }
 
           if (mesh.name !== '__root__') {

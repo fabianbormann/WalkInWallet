@@ -4,20 +4,14 @@ import {
   Vector3,
   Color3,
   HemisphericLight,
-  PointLight,
-  Light,
   TouchCamera,
-  MeshBuilder,
-  StandardMaterial,
   Texture,
   MirrorTexture,
   Plane,
-  Mesh,
   PointerEventTypes,
   Scene,
   Color4,
-  ShadowGenerator,
-  SSAO2RenderingPipeline,
+  BackgroundMaterial,
 } from '@babylonjs/core';
 
 import SceneComponent from 'babylonjs-hook';
@@ -32,7 +26,7 @@ import { Grid, Link, Typography, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import { BackIcon, NextIcon } from '../components/Buttons';
-import { hasTouchScreen, moveToPickedPicture, setupKeys } from './Inputs';
+import { hasTouchScreen, moveToPickedPicture, setupInputs } from './Inputs';
 
 const FullView = styled('div')({
   height: '100%',
@@ -122,31 +116,7 @@ const MainScene = ({
       camera.ellipsoid = new Vector3(1.5, 0.5, 1.5);
       camera.checkCollisions = true;
 
-      const screenWidth = Math.max(window.screen.width, window.innerWidth);
-
-      let depth = 85;
-      let offset = 40;
-
-      if (screenWidth > 800) {
-        depth = 55;
-        offset = 30;
-      } else if (screenWidth > 360) {
-        depth = 85 - (30 / 440) * (screenWidth - 360);
-        offset = 40 - (10 / 440) * (screenWidth - 360);
-      }
-
-      const collider = MeshBuilder.CreateBox(
-        'collider',
-        { width: 1, depth: depth, height: 1 },
-        mainScene
-      );
-
-      collider.parent = camera;
-      collider.visibility = 0;
-      collider.position = new Vector3(0, 0, offset);
-      collider.isPickable = false;
-
-      setupKeys(camera, canvas);
+      setupInputs(camera, canvas, mainScene);
 
       const light = new HemisphericLight(
         'HemisphericLight',
@@ -176,7 +146,14 @@ const MainScene = ({
           room.row,
           room.col,
           mainScene,
-          reflectionTexture
+          reflectionTexture,
+          (room: number) => {
+            if (room === 0) {
+              navigate('/', { replace: true });
+            } else {
+              navigate(`/${address}/${room}`, { replace: true });
+            }
+          }
         );
       }
 
@@ -251,7 +228,7 @@ const MainScene = ({
               if (ratio > 0.9 && ratio < 1.1) {
                 const paintingMaterial = mainScene.getMaterialByName(
                   `Painting#material#${row}.${col}.${wall}.${side}#square`
-                ) as StandardMaterial;
+                ) as BackgroundMaterial;
 
                 if (paintingMaterial) {
                   for (const meshName of [
@@ -282,7 +259,7 @@ const MainScene = ({
               } else {
                 const paintingMaterial = mainScene.getMaterialByName(
                   `Painting#material#${row}.${col}.${wall}.${side}#rect`
-                ) as StandardMaterial;
+                ) as BackgroundMaterial;
 
                 if (paintingMaterial) {
                   for (const meshName of [

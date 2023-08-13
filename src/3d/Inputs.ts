@@ -1,9 +1,16 @@
 import {
+  AbstractMesh,
+  ActionEvent,
+  ActionManager,
+  ExecuteCodeAction,
   KeyboardEventTypes,
+  MeshBuilder,
   Nullable,
   PickingInfo,
+  Scene,
   TouchCamera,
   UniversalCamera,
+  Vector3,
 } from '@babylonjs/core';
 
 export const hasTouchScreen = () => {
@@ -68,9 +75,143 @@ export const moveToPickedPicture = (
   }
 };
 
-export const setupKeys = (
+const triggerEnterMeshAction = (scene: Scene, source: AbstractMesh) => {
+  const collider = scene.getMeshByName('collider');
+  if (collider) {
+    collider.metadata = {
+      collidedMesh: source,
+    };
+  }
+};
+
+const createBoundingBox = (meshes: Array<AbstractMesh>, scene: Scene) => {
+  let minX = Number.MAX_VALUE;
+  let minY = Number.MAX_VALUE;
+  let minZ = Number.MAX_VALUE;
+  let maxX = -Number.MAX_VALUE;
+  let maxY = -Number.MAX_VALUE;
+  let maxZ = -Number.MAX_VALUE;
+
+  for (const mesh of meshes) {
+    const meshBoundingInfo = mesh.getBoundingInfo();
+    const meshMin = meshBoundingInfo.boundingBox.minimum;
+    const meshMax = meshBoundingInfo.boundingBox.maximum;
+
+    minX = Math.min(minX, meshMin.x);
+    minY = Math.min(minY, meshMin.y);
+    minZ = Math.min(minZ, meshMin.z);
+    maxX = Math.max(maxX, meshMax.x);
+    maxY = Math.max(maxY, meshMax.y);
+    maxZ = Math.max(maxZ, meshMax.z);
+  }
+
+  const boundingBoxCenter = new Vector3(
+    (minX + maxX) / 2,
+    (minY + maxY) / 2,
+    (minZ + maxZ) / 2
+  );
+  const boundingBoxWidth = maxX - minX;
+  const boundingBoxHeight = maxY - minY;
+  const boundingBoxDepth = maxZ - minZ;
+
+  const boundingBoxMesh = MeshBuilder.CreateBox(
+    'BoundingBox',
+    {
+      width: boundingBoxWidth,
+      height: boundingBoxHeight,
+      depth: boundingBoxDepth,
+    },
+    scene
+  );
+
+  boundingBoxMesh.position = boundingBoxCenter;
+  //boundingBoxMesh.isVisible = false;
+  return boundingBoxMesh;
+};
+
+export const registerEnterMeshAction = (
+  scene: Scene,
+  meshes: Array<AbstractMesh>,
+  onEnter?: Function
+) => {
+  let mesh: AbstractMesh;
+  if (meshes.length === 0) return;
+  if (meshes.length === 1) {
+    mesh = meshes[0];
+  } else {
+    mesh = createBoundingBox(meshes, scene);
+  }
+
+  mesh.actionManager = new ActionManager(scene);
+  const enterAction = new ExecuteCodeAction(
+    {
+      trigger: ActionManager.OnIntersectionEnterTrigger,
+      parameter: { mesh: scene.getMeshByName('collider') },
+    },
+    () => {
+      triggerEnterMeshAction(scene, mesh);
+      if (typeof onEnter === 'function') {
+        onEnter();
+      }
+    }
+  );
+  mesh.actionManager.registerAction(enterAction);
+};
+
+export const registerExitMeshAction = (
+  scene: Scene,
+  meshes: Array<AbstractMesh>,
+  onExit: Function
+) => {
+  let mesh: AbstractMesh;
+  if (meshes.length === 0) return;
+  if (meshes.length === 1) {
+    mesh = meshes[0];
+  } else {
+    mesh = createBoundingBox(meshes, scene);
+  }
+
+  const collider = scene.getMeshByName('collider');
+  const exitAction = new ExecuteCodeAction(
+    {
+      trigger: ActionManager.OnIntersectionExitTrigger,
+      parameter: { mesh: collider },
+    },
+    () => {
+      if (collider?.metadata) {
+        collider.metadata = null;
+      }
+      if (typeof onExit === 'function') {
+        onExit();
+      }
+    }
+  );
+  mesh.actionManager?.registerAction(exitAction);
+};
+
+const actionsOnSpace: Array<{
+  meshes: Array<AbstractMesh>;
+  callback: Function;
+}> = [];
+
+export const registerSpaceAction = (
+  meshes: Array<AbstractMesh>,
+  onSpace: (source: AbstractMesh) => void
+) => {
+  for (const mesh of meshes) {
+    mesh.checkCollisions = true;
+  }
+
+  actionsOnSpace.push({
+    meshes: meshes,
+    callback: onSpace,
+  });
+};
+
+export const setupInputs = (
   camera: UniversalCamera | TouchCamera,
-  canvas: Nullable<HTMLCanvasElement>
+  canvas: Nullable<HTMLCanvasElement>,
+  scene: Scene
 ) => {
   if (hasTouchScreen()) {
     camera.keysUp = [];
@@ -117,17 +258,45 @@ export const setupKeys = (
       );
     }
 
-    const scene = camera.getScene();
-
     scene.onKeyboardObservable.add((keyboardInfo) => {
       if (keyboardInfo.type === KeyboardEventTypes.KEYDOWN) {
         if (keyboardInfo.event.code === 'Space') {
           const collider = scene.getMeshByName('collider');
-          if (typeof collider?.metadata?.removeCollidedMeshes === 'function') {
-            collider.metadata.removeCollidedMeshes();
+
+          for (const action of actionsOnSpace) {
+            for (const mesh of action.meshes) {
+              if (collider && collider.intersectsMesh(mesh, false)) {
+                action.callback(mesh);
+                return;
+              }
+            }
           }
         }
       }
     });
+
+    const screenWidth = Math.max(window.screen.width, window.innerWidth);
+
+    let depth = 85;
+    let offset = 40;
+
+    if (screenWidth > 800) {
+      depth = 55;
+      offset = 30;
+    } else if (screenWidth > 360) {
+      depth = 85 - (30 / 440) * (screenWidth - 360);
+      offset = 40 - (10 / 440) * (screenWidth - 360);
+    }
+
+    const collider = MeshBuilder.CreateBox(
+      'collider',
+      { width: 1, depth: depth, height: 1 },
+      scene
+    );
+
+    collider.parent = camera;
+    collider.visibility = 0;
+    collider.position = new Vector3(0, 0, offset);
+    collider.isPickable = false;
   }
 };

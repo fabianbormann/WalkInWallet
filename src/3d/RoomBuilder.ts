@@ -13,9 +13,46 @@ import {
   PBRMaterial,
   StandardMaterial,
   AbstractMesh,
-  ShadowGenerator,
 } from '@babylonjs/core';
 import { RoomType } from '../global/types';
+import { registerSpaceAction } from './Inputs';
+
+const addDoor = (
+  scene: Scene,
+  row: number,
+  col: number,
+  gotoRoom: (room: number) => void
+): Promise<Array<AbstractMesh>> =>
+  new Promise((resolve, reject) => {
+    SceneLoader.ImportMesh('', '/models/', 'door.glb', scene, (meshes) => {
+      for (const mesh of meshes) {
+        if (mesh.name === '__root__') {
+          mesh.scaling = new Vector3(1, 1, 1);
+          mesh.rotation = new Vector3(0, -Math.PI / 2, 0);
+          mesh.position = new Vector3(148 + col * 100, 0, row * 100);
+        }
+      }
+
+      registerSpaceAction(meshes, () => {
+        gotoRoom(0);
+      });
+
+      const exitSignTexture = new Texture('/textures/exit-sign.png', null);
+
+      const plane = MeshBuilder.CreatePlane(
+        'textPlane',
+        { width: 12.5, height: 4.3 },
+        scene
+      );
+      const material = new StandardMaterial('textPlaneMaterial', scene);
+      material.diffuseTexture = exitSignTexture;
+      plane.material = material;
+      plane.rotation = new Vector3(0, Math.PI / 2, 0);
+      plane.position = new Vector3(149.5 + col * 100, 62.5, row * 100);
+
+      resolve(meshes);
+    });
+  });
 
 const addLamp = (
   scene: Scene,
@@ -58,13 +95,18 @@ const createRoomTile = (
   row: number,
   col: number,
   scene: Scene,
-  probe: MirrorTexture
+  probe: MirrorTexture,
+  gotoRoom: (room: number) => void
 ) => {
   const wallMaterial = new PBRMetallicRoughnessMaterial('wallMaterial', scene);
   const wallBaseTexture = new Texture(
     '/textures/Wallpaper_Glassweave_001_basecolor.jpg',
     null
   );
+
+  if (row === 0 && col === 0) {
+    addDoor(scene, row, col, gotoRoom);
+  }
 
   wallBaseTexture.uScale = 2;
   wallBaseTexture.vScale = 2;
