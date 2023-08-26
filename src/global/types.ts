@@ -2,16 +2,22 @@ export type NftData = {
   uri: string;
 };
 
-export type PicturePosition = {
+export type RoomElementPosition = {
   row: number;
   col: number;
-  wall: string;
+  wall: 'top' | 'bottom' | 'left' | 'right';
   side: number;
   hasNeighbour: boolean;
 };
 
-export type Picture = {
+export type RoomElement = {
   name: string;
+  useWholeWall?: boolean;
+  type: 'picture' | 'door';
+  position?: RoomElementPosition;
+};
+
+export interface Picture extends RoomElement {
   image: string;
   link: string;
   description: string;
@@ -20,8 +26,7 @@ export type Picture = {
   width?: number;
   height?: number;
   offline?: boolean;
-  position?: PicturePosition;
-};
+}
 
 export type HeaderProps = {
   logoType?: 'full' | 'back';
@@ -121,7 +126,7 @@ export type HudInfos = {
 export type SceneProps = {
   gallery: Array<Room>;
   paintings: Array<Picture>;
-  nfts: Array<Picture>;
+  roomElements: Array<RoomElement>;
   onSceneReady: () => void;
   isVisible: boolean;
   page: number;

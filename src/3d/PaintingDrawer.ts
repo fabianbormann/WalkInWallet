@@ -3,14 +3,25 @@ import {
   Vector3,
   SceneLoader,
   Mesh,
-  ExecuteCodeAction,
-  ActionManager,
   MirrorTexture,
   BackgroundMaterial,
   Color3,
   PBRMaterial,
+  AbstractMesh,
+  Texture,
+  MeshBuilder,
+  StandardMaterial,
+  DynamicTexture,
+  Material,
+  Vector4,
 } from '@babylonjs/core';
-import { HudInfos, Picture, Room, RoomType } from '../global/types';
+import {
+  HudInfos,
+  Picture,
+  Room,
+  RoomElement,
+  RoomType,
+} from '../global/types';
 import { Scene } from '@babylonjs/core';
 import { Dispatch, SetStateAction } from 'react';
 import {
@@ -18,6 +29,127 @@ import {
   registerExitMeshAction,
   registerSpaceAction,
 } from './Inputs';
+
+const drawRoomSignNumber = (roomNumber: number, material: StandardMaterial) => {
+  const roomNumberTexture = new DynamicTexture('dynamic texture', {
+    width: 125,
+    height: 43,
+  });
+  roomNumberTexture
+    .getContext()
+    .clearRect(
+      0,
+      0,
+      roomNumberTexture.getSize().width,
+      roomNumberTexture.getSize().height
+    );
+
+  roomNumberTexture.getContext().fillStyle = 'green';
+  roomNumberTexture
+    .getContext()
+    .fillRect(
+      0,
+      0,
+      roomNumberTexture.getSize().width,
+      roomNumberTexture.getSize().height
+    );
+  const font = 'bold 36px Ariale';
+  roomNumberTexture.drawText(
+    roomNumber.toString(),
+    null,
+    null,
+    font,
+    'red',
+    'blue',
+    false
+  );
+  roomNumberTexture.wAng = Math.PI;
+  material.diffuseTexture = roomNumberTexture;
+};
+
+const addDoor = (
+  scene: Scene,
+  row: number,
+  col: number,
+  wall: 'top' | 'bottom' | 'left' | 'right',
+  side: number,
+  gotoRoom: (room: number) => void,
+  name: string,
+  currentRoom: number
+): Promise<Array<AbstractMesh>> =>
+  new Promise((resolve, reject) => {
+    SceneLoader.ImportMesh('', '/models/', 'door.glb', scene, (meshes) => {
+      for (const mesh of meshes) {
+        if (mesh.name === '__root__') {
+          mesh.name = `${name}#${row}.${col}.${wall}.${side}`;
+          console.log(mesh.name);
+          mesh.scaling = new Vector3(1, 1, 1);
+          if (wall === 'right') {
+            mesh.rotation = new Vector3(0, -Math.PI / 2, 0);
+            mesh.position = new Vector3(47 + col * 100, 0, row * 100);
+          } else if (wall === 'top') {
+            mesh.rotation = new Vector3(0, Math.PI, 0);
+            mesh.position = new Vector3(col * 100, 0, 48 + row * 100);
+          } else if (wall === 'left') {
+            mesh.rotation = new Vector3(0, Math.PI / 2, 0);
+            mesh.position = new Vector3(col * 100 - 48, 0, row * 100);
+          } else {
+            mesh.rotation = new Vector3(0, 0, 0);
+            mesh.position = new Vector3(col * 100, 0, row * 100 - 48);
+          }
+        }
+      }
+
+      var f = new Vector4(0.5, 0, 1, 1);
+      var b = new Vector4(0, 0, 0.5, 1);
+
+      const plane = MeshBuilder.CreatePlane(
+        'textPlane',
+        {
+          width: 12.5,
+          height: 4.3,
+          sideOrientation: Mesh.DOUBLESIDE,
+        },
+        scene
+      );
+      const material = new StandardMaterial('textPlaneMaterial', scene);
+      material.sideOrientation = Mesh.DOUBLESIDE;
+      if (wall === 'right') {
+        plane.rotation = new Vector3(0, Math.PI / 2, 0);
+        plane.position = new Vector3(48.5 + col * 100, 62.5, row * 100);
+      } else if (wall === 'top') {
+        plane.rotation = new Vector3(0, 0, 0);
+        plane.position = new Vector3(col * 100, 62.5, 49.5 + row * 100);
+      } else if (wall === 'left') {
+        plane.rotation = new Vector3(0, -Math.PI / 2, 0);
+        plane.position = new Vector3(col * 100 - 49.5, 62.5, row * 100);
+      } else {
+        plane.rotation = new Vector3(0, Math.PI, 0);
+        plane.position = new Vector3(col * 100, 62.5, row * 100 - 49.5);
+      }
+
+      if (name === 'Exit Door') {
+        registerSpaceAction(meshes, () => {
+          gotoRoom(0);
+        });
+        //const exitSignTexture = new Texture('/textures/exit-sign.png', null);
+        //material.diffuseTexture = exitSignTexture;
+        drawRoomSignNumber(currentRoom, material);
+      } else if (name === 'Next Door') {
+        registerSpaceAction(meshes, () => {
+          gotoRoom(currentRoom + 1);
+        });
+        drawRoomSignNumber(currentRoom + 1, material);
+      } else if (name === 'Previous Door') {
+        registerSpaceAction(meshes, () => {
+          gotoRoom(currentRoom - 1);
+        });
+        drawRoomSignNumber(currentRoom - 1, material);
+      }
+      plane.material = material;
+      resolve(meshes);
+    });
+  });
 
 const setupSlots = (rooms: Array<Room>) => {
   for (const room of rooms) {
@@ -89,16 +221,16 @@ const setupSlots = (rooms: Array<Room>) => {
   }
 };
 
-const hangPaintings = (
+const arrangeGallery = (
   hash: string,
   rooms: Array<Room>,
-  paintings: Array<Picture>
+  roomElements: Array<RoomElement>
 ) => {
   const random = seedrandom(hash);
   let options = rooms.filter((room) => room.space > 0);
   setupSlots(options);
 
-  for (const painting of paintings) {
+  for (const roomElement of roomElements) {
     const choice = options[Math.floor(random() * options.length)];
 
     if (typeof choice.slots !== 'undefined') {
@@ -113,8 +245,19 @@ const hangPaintings = (
       const chosenSlot = choice.slots[slot];
 
       if (typeof chosenSlot !== 'undefined') {
-        if (chosenSlot[side] === 1) {
-          painting.position = {
+        if (roomElement.useWholeWall) {
+          roomElement.position = {
+            row: choice.row,
+            col: choice.col,
+            wall: slot,
+            side: side,
+            hasNeighbour: false,
+          };
+          chosenSlot[0] = 0;
+          chosenSlot[1] = 0;
+          choice.space -= 2;
+        } else if (chosenSlot[side] === 1) {
+          roomElement.position = {
             row: choice.row,
             col: choice.col,
             wall: slot,
@@ -124,7 +267,7 @@ const hangPaintings = (
           chosenSlot[side] = 0;
           choice.space -= 1;
         } else {
-          painting.position = {
+          roomElement.position = {
             row: choice.row,
             col: choice.col,
             wall: slot,
@@ -144,32 +287,35 @@ const hangPaintings = (
     }
   }
 
-  for (const painting of paintings) {
-    if (painting.position) {
-      const { row, col, wall, side } = painting.position;
-      const neighbours = paintings.filter(
+  for (const roomElement of roomElements) {
+    if (roomElement.position) {
+      const { row, col, wall, side } = roomElement.position;
+      const neighbours = roomElements.filter(
         (candidate) =>
+          !candidate.useWholeWall &&
           candidate.position?.row === row &&
           candidate.position?.col === col &&
           candidate.position?.wall === wall &&
           candidate.position?.side === 1 - side
       );
-      painting.position.hasNeighbour = neighbours.length > 0;
+      roomElement.position.hasNeighbour = neighbours.length > 0;
     }
   }
 
-  return paintings;
+  return roomElements;
 };
 
-const drawPainting = (
-  painting: Picture,
+const drawRoomElement = async (
+  roomElement: RoomElement,
   scene: Scene,
   setHudDisplayVisible: Dispatch<SetStateAction<boolean>>,
   setHudInfos: Dispatch<SetStateAction<HudInfos>>,
-  probe: MirrorTexture
+  probe: MirrorTexture,
+  gotoRoom: (room: number) => void,
+  currentRoom: number
 ) => {
-  if (painting.position) {
-    const { row, col, wall, side, hasNeighbour } = painting.position;
+  if (roomElement.position) {
+    const { row, col, wall, side, hasNeighbour } = roomElement.position;
     let rowOffset = 100 * row;
     let colOffset = 100 * col - 6;
 
@@ -221,164 +367,181 @@ const drawPainting = (
       }
     }
 
-    for (const model of ['frame-square.glb', 'frame.glb']) {
-      SceneLoader.ImportMesh('', '/models/', model, scene, (meshes) => {
-        const isRectangular = model === 'frame.glb';
+    if (roomElement.type === 'picture') {
+      for (const model of ['frame-square.glb', 'frame.glb']) {
+        SceneLoader.ImportMesh('', '/models/', model, scene, (meshes) => {
+          const isRectangular = model === 'frame.glb';
 
-        for (const mesh of meshes) {
-          if (mesh.material) {
-            mesh.material.sideOrientation = Mesh.DOUBLESIDE;
-          }
+          for (const mesh of meshes) {
+            if (mesh.material) {
+              mesh.material.sideOrientation = Mesh.DOUBLESIDE;
+            }
 
-          if (mesh.name === 'Collider') {
-            mesh.visibility = 0;
-            mesh.metadata = {
-              removeGroup: () => {
-                for (const part of meshes) {
-                  part.material?.dispose();
-                  part.dispose();
-                  scene.removeMesh(part);
+            if (mesh.name === 'Collider') {
+              mesh.visibility = 0;
+              mesh.metadata = {
+                removeGroup: () => {
+                  for (const part of meshes) {
+                    part.material?.dispose();
+                    part.dispose();
+                    scene.removeMesh(part);
 
-                  if (part.name === '__root__') {
+                    if (part.name === '__root__') {
+                      probe.renderList =
+                        probe.renderList?.filter(
+                          (probeMesh) => probeMesh !== part
+                        ) || [];
+                    }
+                  }
+                },
+              };
+
+              registerSpaceAction([mesh], (source) => {
+                const collider = scene.getMeshByName('collider');
+
+                if (collider) {
+                  collider.metadata?.removeCollidedMeshes();
+                }
+
+                setHudDisplayVisible(false);
+                setHudInfos({
+                  name: '',
+                  offline: true,
+                  description: '',
+                  link: '',
+                });
+              });
+
+              registerEnterMeshAction(scene, [mesh], () => {
+                const collider = scene.getMeshByName('collider');
+                if (collider) {
+                  collider.metadata = {
+                    collidedMeshes: meshes,
+                    removeCollidedMeshes: () => {
+                      for (const mesh of meshes) {
+                        mesh.material?.dispose();
+                        mesh.dispose();
+                        scene.removeMesh(mesh);
+                      }
+                      setHudDisplayVisible(false);
+                      setHudInfos({
+                        name: '',
+                        offline: true,
+                        description: '',
+                        link: '',
+                      });
+                      collider.metadata = null;
+                    },
+                    paintingName: roomElement.name,
+                  };
+                }
+
+                setHudDisplayVisible(true);
+                setHudInfos({
+                  name: roomElement.name,
+                  offline: (roomElement as Picture).offline || true,
+                  description: (roomElement as Picture).description,
+                  link: (roomElement as Picture).link,
+                });
+              });
+
+              registerExitMeshAction(scene, [mesh], () => {
+                const collider = scene.getMeshByName('collider');
+                if (collider) {
+                  collider.metadata = null;
+                }
+
+                setHudDisplayVisible(false);
+                setHudInfos({
+                  name: '',
+                  offline: true,
+                  description: '',
+                  link: '',
+                });
+              });
+            }
+
+            if (mesh.name === 'Passepartout') {
+              (mesh.material as PBRMaterial).emissiveColor = new Color3(
+                1,
+                1,
+                1
+              );
+              (mesh.material as PBRMaterial).emissiveIntensity = 0.3;
+            }
+
+            if (mesh.name === 'Painting') {
+              const paintingMaterial = new BackgroundMaterial(
+                `Painting#material#${row}.${col}.${wall}.${side}#${
+                  isRectangular ? 'rect' : 'square'
+                }`,
+                scene
+              );
+
+              paintingMaterial.opacityFresnel = false;
+
+              const loadingTexture = scene.getTextureByName('LoadingTexture');
+
+              if (loadingTexture) {
+                paintingMaterial.diffuseTexture = loadingTexture;
+              }
+
+              mesh.material = paintingMaterial;
+              mesh.material.sideOrientation = Mesh.DOUBLESIDE;
+            }
+
+            if (mesh.name !== '__root__') {
+              if (probe.renderList) {
+                probe.renderList.push(mesh);
+              }
+              mesh.name = `${mesh.name}#${row}.${col}.${wall}.${side}#${
+                isRectangular ? 'rect' : 'square'
+              }`;
+              if (isRectangular) {
+                mesh.visibility = 0;
+              }
+
+              mesh.metadata = {
+                removeGroup: () => {
+                  for (const mesh of meshes) {
+                    mesh.material?.dispose();
+                    mesh.dispose();
+                    scene.removeMesh(mesh);
+                  }
+                  if (mesh.name === '__root__') {
                     probe.renderList =
                       probe.renderList?.filter(
-                        (probeMesh) => probeMesh !== part
+                        (probeMesh) => probeMesh !== mesh
                       ) || [];
                   }
-                }
-              },
-            };
+                },
+              };
 
-            registerSpaceAction([mesh], (source) => {
-              const collider = scene.getMeshByName('collider');
-
-              if (collider) {
-                collider.metadata?.removeCollidedMeshes();
+              if (mesh.name.includes('Collider')) {
+                mesh.isPickable = true;
+              } else {
+                mesh.isPickable = false;
               }
-
-              setHudDisplayVisible(false);
-              setHudInfos({
-                name: '',
-                offline: true,
-                description: '',
-                link: '',
-              });
-            });
-
-            registerEnterMeshAction(scene, [mesh], () => {
-              const collider = scene.getMeshByName('collider');
-              if (collider) {
-                collider.metadata = {
-                  collidedMeshes: meshes,
-                  removeCollidedMeshes: () => {
-                    for (const mesh of meshes) {
-                      mesh.material?.dispose();
-                      mesh.dispose();
-                      scene.removeMesh(mesh);
-                    }
-                    setHudDisplayVisible(false);
-                    setHudInfos({
-                      name: '',
-                      offline: true,
-                      description: '',
-                      link: '',
-                    });
-                    collider.metadata = null;
-                  },
-                  paintingName: painting.name,
-                };
-              }
-
-              setHudDisplayVisible(true);
-              setHudInfos({
-                name: painting.name,
-                offline: painting.offline || true,
-                description: painting.description,
-                link: painting.link,
-              });
-            });
-
-            registerExitMeshAction(scene, [mesh], () => {
-              const collider = scene.getMeshByName('collider');
-              if (collider) {
-                collider.metadata = null;
-              }
-
-              setHudDisplayVisible(false);
-              setHudInfos({
-                name: '',
-                offline: true,
-                description: '',
-                link: '',
-              });
-            });
-          }
-
-          if (mesh.name === 'Passepartout') {
-            (mesh.material as PBRMaterial).emissiveColor = new Color3(1, 1, 1);
-            (mesh.material as PBRMaterial).emissiveIntensity = 0.3;
-          }
-
-          if (mesh.name === 'Painting') {
-            const paintingMaterial = new BackgroundMaterial(
-              `Painting#material#${row}.${col}.${wall}.${side}#${
-                isRectangular ? 'rect' : 'square'
-              }`,
-              scene
-            );
-
-            paintingMaterial.opacityFresnel = false;
-
-            const loadingTexture = scene.getTextureByName('LoadingTexture');
-
-            if (loadingTexture) {
-              paintingMaterial.diffuseTexture = loadingTexture;
-            }
-
-            mesh.material = paintingMaterial;
-            mesh.material.sideOrientation = Mesh.DOUBLESIDE;
-          }
-
-          if (mesh.name !== '__root__') {
-            if (probe.renderList) {
-              probe.renderList.push(mesh);
-            }
-            mesh.name = `${mesh.name}#${row}.${col}.${wall}.${side}#${
-              isRectangular ? 'rect' : 'square'
-            }`;
-            if (isRectangular) {
-              mesh.visibility = 0;
-            }
-
-            mesh.metadata = {
-              removeGroup: () => {
-                for (const mesh of meshes) {
-                  mesh.material?.dispose();
-                  mesh.dispose();
-                  scene.removeMesh(mesh);
-                }
-                if (mesh.name === '__root__') {
-                  probe.renderList =
-                    probe.renderList?.filter(
-                      (probeMesh) => probeMesh !== mesh
-                    ) || [];
-                }
-              },
-            };
-
-            if (mesh.name.includes('Collider')) {
-              mesh.isPickable = true;
             } else {
-              mesh.isPickable = false;
+              mesh.position = new Vector3(0 + colOffset, 15, 44 + rowOffset);
+              mesh.rotation = rotation;
             }
-          } else {
-            mesh.position = new Vector3(0 + colOffset, 15, 44 + rowOffset);
-            mesh.rotation = rotation;
           }
-        }
-      });
+        });
+      }
+    } else if (roomElement.type === 'door') {
+      await addDoor(
+        scene,
+        row,
+        col,
+        wall,
+        side,
+        gotoRoom,
+        roomElement.name,
+        currentRoom
+      );
     }
   }
 };
 
-export { hangPaintings, drawPainting };
+export { arrangeGallery, drawRoomElement };

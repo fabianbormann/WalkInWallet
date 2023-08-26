@@ -1,6 +1,11 @@
 import Axios, { AxiosError } from 'axios';
 import { Buffer } from 'buffer';
-import { NftDetailResponse, NftFetchResponse, Picture } from './types';
+import {
+  NftDetailResponse,
+  NftFetchResponse,
+  Picture,
+  RoomElement,
+} from './types';
 import { setupCache, buildWebStorage } from 'axios-cache-interceptor';
 
 const axios = setupCache(Axios.create(), {
@@ -76,6 +81,7 @@ export const extractNFTsFromNFTDetailResponse = (
               ...pictures,
               {
                 name: asset.name,
+                type: 'picture',
                 image: asset.image,
                 link: `https://www.jpg.store/asset/${policyId}${Buffer.from(
                   assetName
@@ -102,12 +108,15 @@ export const extractNFTsFromNFTDetailResponse = (
 };
 
 export const loadPaintings = async (
-  nfts: Array<Picture>,
+  roomElements: Array<RoomElement>,
   needToStop: () => boolean,
   setStage: (stage: string) => void,
   setProgress: (progress: number) => void,
   setPaintings: (paintings: Array<Picture>) => void
 ) => {
+  const nfts = roomElements.filter(
+    (roomElement) => roomElement.type === 'picture'
+  ) as Array<Picture>;
   const loadImage = (image: HTMLImageElement, blob: string) =>
     new Promise((resolve, reject) => {
       image.addEventListener('load', () => {

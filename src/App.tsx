@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { buildGallery } from './3d/MapGenerator';
-import { hangPaintings } from './3d/PaintingDrawer';
+import { arrangeGallery } from './3d/PaintingDrawer';
 import Scene from './3d/Scene';
 import './App.css';
 import {
@@ -21,13 +21,13 @@ import {
   loadPaintings,
 } from './global/api';
 import { FAQ, Welcome, Benefits } from './pages';
-import { Picture, Room } from './global/types';
+import { Picture, Room, RoomElement } from './global/types';
 
 const Main = () => {
   const [progress, setProgress] = useState(0);
   const [sceneVisible, setSceneVisible] = useState(false);
   const [stage, setStage] = useState('Read wallet');
-  const [nfts, setNfts] = useState<Array<Picture>>([]);
+  const [elementsInRoom, setElementsInRoom] = useState<Array<RoomElement>>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [gallery, setGallery] = useState<Array<Room>>();
   const [paintings, setPaintings] = useState<Array<Picture>>([]);
@@ -35,7 +35,7 @@ const Main = () => {
   const theme = useTheme();
 
   const fetchNFTs = useCallback(async () => {
-    let pictures: Array<Picture> = [];
+    let roomElements: Array<RoomElement> = [];
     let availablePages = 1;
 
     if (typeof address === 'undefined') return;
@@ -60,8 +60,35 @@ const Main = () => {
         page
       );
 
-      pictures = nftsToDisplay.pictures;
+      const doors = [];
+      const exitDoor: RoomElement = {
+        type: 'door',
+        name: 'Exit Door',
+        useWholeWall: true,
+      };
+
+      doors.push(exitDoor);
       availablePages = nftsToDisplay.totalPages;
+
+      if (availablePages > 1 && parseInt(page || '1') < availablePages) {
+        const nextRoomDoor: RoomElement = {
+          type: 'door',
+          name: 'Next Room',
+          useWholeWall: true,
+        };
+        doors.push(nextRoomDoor);
+      }
+
+      if (parseInt(page || '1') > 1) {
+        const previousRoomDoor: RoomElement = {
+          type: 'door',
+          name: 'Previous Room',
+          useWholeWall: true,
+        };
+        doors.push(previousRoomDoor);
+      }
+
+      roomElements = [...doors, ...nftsToDisplay.pictures];
     } catch (error) {
       console.error(error);
     }
@@ -69,18 +96,23 @@ const Main = () => {
     setProgress(21);
     setStage('Collecting NFT metadata and read images');
 
-    const rooms = buildGallery(address, pictures.length, parseInt(page || '1'));
+    const rooms = buildGallery(
+      address,
+      roomElements.length,
+      parseInt(page || '1')
+    );
+
+    roomElements = arrangeGallery(address, rooms, roomElements);
 
     setGallery(rooms);
-    setNfts(pictures);
+    setElementsInRoom(roomElements);
     setTotalPages(availablePages);
-    hangPaintings(address, rooms, pictures);
     setStage('Rendering 3D gallery');
     setProgress(99);
   }, [address, page]);
 
   useEffect(() => {
-    setNfts([]);
+    setElementsInRoom([]);
     setPaintings([]);
     setTotalPages(1);
     setGallery(undefined);
@@ -90,27 +122,33 @@ const Main = () => {
   }, [address, page]);
 
   useEffect(() => {
-    if (nfts.length === 0) {
+    if (elementsInRoom.length === 0) {
       fetchNFTs();
     }
-  }, [fetchNFTs, nfts]);
+  }, [fetchNFTs, elementsInRoom]);
 
   useEffect(() => {
-    if (sceneVisible && nfts.length > 0) {
+    if (sceneVisible && elementsInRoom.length > 0) {
       let stopFetching = false;
       const needToStop = () => stopFetching;
-      loadPaintings(nfts, needToStop, setStage, setProgress, setPaintings);
+      loadPaintings(
+        elementsInRoom,
+        needToStop,
+        setStage,
+        setProgress,
+        setPaintings
+      );
 
       return () => {
         stopFetching = true;
       };
     }
-  }, [sceneVisible, nfts]);
+  }, [sceneVisible, elementsInRoom]);
 
   const onSceneReady = useCallback(() => setSceneVisible(true), []);
 
   if (typeof gallery !== 'undefined') {
-    if (nfts.length === 0) {
+    if (elementsInRoom.length === 0) {
       return (
         <Grid
           sx={{
@@ -155,7 +193,7 @@ const Main = () => {
           isVisible={sceneVisible}
           gallery={gallery}
           paintings={paintings}
-          nfts={nfts}
+          roomElements={elementsInRoom}
           page={parseInt(page || '1')}
           totalPages={totalPages}
           address={address || ''}

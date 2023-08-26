@@ -17,7 +17,7 @@ import {
 import SceneComponent from 'babylonjs-hook';
 import '@babylonjs/loaders/glTF';
 import { createRoomTile } from './RoomBuilder';
-import { drawPainting } from './PaintingDrawer';
+import { drawRoomElement } from './PaintingDrawer';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HudInfos, SceneProps } from '../global/types';
@@ -47,7 +47,7 @@ const Hud = styled(`div`)({
 const MainScene = ({
   gallery,
   paintings,
-  nfts,
+  roomElements,
   onSceneReady,
   isVisible,
   page,
@@ -73,7 +73,7 @@ const MainScene = ({
     if (
       typeof mainScene !== 'undefined' &&
       typeof gallery !== 'undefined' &&
-      typeof nfts !== 'undefined' &&
+      typeof roomElements !== 'undefined' &&
       typeof onSceneReady === 'function' &&
       !initialized
     ) {
@@ -146,33 +146,27 @@ const MainScene = ({
           room.row,
           room.col,
           mainScene,
-          reflectionTexture,
-          (room: number) => {
-            if (room === 0) {
-              navigate('/', { replace: true });
-            } else {
-              navigate(`/${address}/${room}`, { replace: true });
-            }
-          }
+          reflectionTexture
         );
       }
 
-      for (const nft of nfts) {
-        if (nft.position) {
-          const { row, col, wall, side } = nft.position;
-          const paintingMesh = mainScene.getMeshByName(
-            `${row}.${col}.${wall}.${side}`
+      for (const roomElement of roomElements) {
+        if (roomElement.position) {
+          drawRoomElement(
+            roomElement,
+            mainScene,
+            setHudDisplayVisible,
+            setHudInfos,
+            reflectionTexture,
+            (room: number) => {
+              if (room === 0) {
+                navigate('/', { replace: true });
+              } else {
+                navigate(`/${address}/${room}`, { replace: true });
+              }
+            },
+            page
           );
-
-          if (!paintingMesh) {
-            drawPainting(
-              nft,
-              mainScene,
-              setHudDisplayVisible,
-              setHudInfos,
-              reflectionTexture
-            );
-          }
         }
       }
 
@@ -182,7 +176,14 @@ const MainScene = ({
       });
       setInitialized(true);
     }
-  }, [mainScene, initialized, onSceneReady, hasTouchScreen, gallery, nfts]);
+  }, [
+    mainScene,
+    initialized,
+    onSceneReady,
+    hasTouchScreen,
+    gallery,
+    roomElements,
+  ]);
 
   useEffect(() => {
     let loadingTexture = mainScene?.getTextureByName(
