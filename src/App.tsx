@@ -73,7 +73,7 @@ const Main = () => {
       if (availablePages > 1 && parseInt(page || '1') < availablePages) {
         const nextRoomDoor: RoomElement = {
           type: 'door',
-          name: 'Next Room',
+          name: 'Next Room Door',
           useWholeWall: true,
         };
         doors.push(nextRoomDoor);
@@ -82,7 +82,7 @@ const Main = () => {
       if (parseInt(page || '1') > 1) {
         const previousRoomDoor: RoomElement = {
           type: 'door',
-          name: 'Previous Room',
+          name: 'Previous Room Door',
           useWholeWall: true,
         };
         doors.push(previousRoomDoor);
@@ -195,7 +195,6 @@ const Main = () => {
           paintings={paintings}
           roomElements={elementsInRoom}
           page={parseInt(page || '1')}
-          totalPages={totalPages}
           address={address || ''}
         />
       </Grid>

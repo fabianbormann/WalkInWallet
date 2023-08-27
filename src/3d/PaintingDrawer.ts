@@ -35,35 +35,17 @@ const drawRoomSignNumber = (roomNumber: number, material: StandardMaterial) => {
     width: 125,
     height: 43,
   });
-  roomNumberTexture
-    .getContext()
-    .clearRect(
-      0,
-      0,
-      roomNumberTexture.getSize().width,
-      roomNumberTexture.getSize().height
-    );
 
-  roomNumberTexture.getContext().fillStyle = 'green';
-  roomNumberTexture
-    .getContext()
-    .fillRect(
-      0,
-      0,
-      roomNumberTexture.getSize().width,
-      roomNumberTexture.getSize().height
-    );
-  const font = 'bold 36px Ariale';
+  const font = 'bold 36px Arial';
   roomNumberTexture.drawText(
     roomNumber.toString(),
     null,
     null,
     font,
-    'red',
-    'blue',
-    false
+    'white',
+    '#3C2013',
+    true
   );
-  roomNumberTexture.wAng = Math.PI;
   material.diffuseTexture = roomNumberTexture;
 };
 
@@ -82,7 +64,6 @@ const addDoor = (
       for (const mesh of meshes) {
         if (mesh.name === '__root__') {
           mesh.name = `${name}#${row}.${col}.${wall}.${side}`;
-          console.log(mesh.name);
           mesh.scaling = new Vector3(1, 1, 1);
           if (wall === 'right') {
             mesh.rotation = new Vector3(0, -Math.PI / 2, 0);
@@ -132,15 +113,14 @@ const addDoor = (
         registerSpaceAction(meshes, () => {
           gotoRoom(0);
         });
-        //const exitSignTexture = new Texture('/textures/exit-sign.png', null);
-        //material.diffuseTexture = exitSignTexture;
-        drawRoomSignNumber(currentRoom, material);
-      } else if (name === 'Next Door') {
+        const exitSignTexture = new Texture('/textures/exit-sign.png', null);
+        material.diffuseTexture = exitSignTexture;
+      } else if (name === 'Next Room Door') {
         registerSpaceAction(meshes, () => {
           gotoRoom(currentRoom + 1);
         });
         drawRoomSignNumber(currentRoom + 1, material);
-      } else if (name === 'Previous Door') {
+      } else if (name === 'Previous Room Door') {
         registerSpaceAction(meshes, () => {
           gotoRoom(currentRoom - 1);
         });

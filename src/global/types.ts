@@ -130,6 +130,5 @@ export type SceneProps = {
   onSceneReady: () => void;
   isVisible: boolean;
   page: number;
-  totalPages: number;
   address: string;
 };

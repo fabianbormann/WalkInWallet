@@ -18,14 +18,13 @@ import SceneComponent from 'babylonjs-hook';
 import '@babylonjs/loaders/glTF';
 import { createRoomTile } from './RoomBuilder';
 import { drawRoomElement } from './PaintingDrawer';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HudInfos, SceneProps } from '../global/types';
 import { styled } from '@mui/system';
 import { Grid, Link, Typography, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
-import { BackIcon, NextIcon } from '../components/Buttons';
 import { hasTouchScreen, moveToPickedPicture, setupInputs } from './Inputs';
 
 const FullView = styled('div')({
@@ -51,7 +50,6 @@ const MainScene = ({
   onSceneReady,
   isVisible,
   page,
-  totalPages,
   address,
 }: SceneProps) => {
   const CAMERA_HEIGHT = 40;
@@ -303,37 +301,6 @@ const MainScene = ({
         display: isVisible ? 'block' : 'none',
       }}
     >
-      <BackIcon
-        onClick={() => {
-          if (page === 1) {
-            navigate('/', { replace: true });
-          } else {
-            navigate(`/${address}/${page - 1}`, { replace: true });
-          }
-        }}
-      />
-
-      <Typography
-        variant="h6"
-        sx={{
-          color: theme.palette.primary.main,
-          position: 'absolute',
-          top: 12,
-          fontWeight: 'bolder',
-          left: 'calc(50% - 42px - 8px)',
-        }}
-      >
-        Room {page} / {totalPages}
-      </Typography>
-
-      {page < totalPages && (
-        <NextIcon
-          onClick={() => {
-            navigate(`/${address}/${page + 1}`, { replace: true });
-          }}
-        />
-      )}
-
       <SceneComponent
         style={{
           height: '100%',
