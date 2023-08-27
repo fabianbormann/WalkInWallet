@@ -1,12 +1,12 @@
 import {
   AbstractMesh,
-  ActionEvent,
   ActionManager,
   ExecuteCodeAction,
   KeyboardEventTypes,
   MeshBuilder,
   Nullable,
   PickingInfo,
+  PointerEventTypes,
   Scene,
   TouchCamera,
   UniversalCamera,
@@ -34,7 +34,7 @@ export const hasTouchScreen = () => {
   return touchScreen;
 };
 
-export const moveToPickedPicture = (
+export const moveToPickedObject = (
   pickInfo: Nullable<PickingInfo>,
   camera: UniversalCamera | TouchCamera
 ) => {
@@ -42,7 +42,9 @@ export const moveToPickedPicture = (
 
   if (
     (pickInfo.hit && pickInfo.pickedMesh?.name?.startsWith('Collider#')) ||
-    pickInfo.pickedMesh?.name?.startsWith('Painting#')
+    (pickInfo.pickedMesh &&
+      (pickInfo.pickedMesh.name.startsWith('Painting#') ||
+        pickInfo.pickedMesh.name.includes('Door#')))
   ) {
     const screenWidth = Math.max(window.screen.width, window.innerWidth);
     let distance = 80;
@@ -240,63 +242,78 @@ export const setupInputs = (
     camera.keysRight = [D_KEY, RIGHT_KEY];
     camera.keysRotateLeft.push(Q_KEY);
     camera.keysRotateRight.push(E_KEY);
+  }
 
-    if (canvas) {
-      canvas.addEventListener(
-        'click',
-        () => {
-          canvas.requestPointerLock =
-            canvas.requestPointerLock ||
-            canvas.msRequestPointerLock ||
-            canvas.mozRequestPointerLock ||
-            canvas.webkitRequestPointerLock;
-          if (canvas.requestPointerLock) {
-            canvas.requestPointerLock();
-          }
-        },
-        false
-      );
+  if (canvas && !hasTouchScreen()) {
+    canvas.addEventListener(
+      'click',
+      () => {
+        canvas.requestPointerLock =
+          canvas.requestPointerLock ||
+          canvas.msRequestPointerLock ||
+          canvas.mozRequestPointerLock ||
+          canvas.webkitRequestPointerLock;
+        if (canvas.requestPointerLock) {
+          canvas.requestPointerLock();
+        }
+      },
+      false
+    );
+  }
+
+  const checkRegisteredActions = () => {
+    const collider = scene.getMeshByName('collider');
+
+    for (const action of actionsOnSpace) {
+      for (const mesh of action.meshes) {
+        if (collider && collider.intersectsMesh(mesh, false)) {
+          action.callback(mesh);
+          return;
+        }
+      }
     }
+  };
 
+  if (hasTouchScreen()) {
+    scene.onPointerObservable.add((pointerInfo, eventState) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        moveToPickedObject(pointerInfo.pickInfo, camera);
+      }
+      if (pointerInfo.type === PointerEventTypes.POINTERDOUBLETAP) {
+        checkRegisteredActions();
+      }
+    });
+  } else {
     scene.onKeyboardObservable.add((keyboardInfo) => {
       if (keyboardInfo.type === KeyboardEventTypes.KEYDOWN) {
         if (keyboardInfo.event.code === 'Space') {
-          const collider = scene.getMeshByName('collider');
-
-          for (const action of actionsOnSpace) {
-            for (const mesh of action.meshes) {
-              if (collider && collider.intersectsMesh(mesh, false)) {
-                action.callback(mesh);
-                return;
-              }
-            }
-          }
+          checkRegisteredActions();
         }
       }
     });
-
-    const screenWidth = Math.max(window.screen.width, window.innerWidth);
-
-    let depth = 85;
-    let offset = 40;
-
-    if (screenWidth > 800) {
-      depth = 55;
-      offset = 30;
-    } else if (screenWidth > 360) {
-      depth = 85 - (30 / 440) * (screenWidth - 360);
-      offset = 40 - (10 / 440) * (screenWidth - 360);
-    }
-
-    const collider = MeshBuilder.CreateBox(
-      'collider',
-      { width: 1, depth: depth, height: 1 },
-      scene
-    );
-
-    collider.parent = camera;
-    collider.visibility = 0;
-    collider.position = new Vector3(0, 0, offset);
-    collider.isPickable = false;
   }
+
+  const screenWidth = Math.max(window.screen.width, window.innerWidth);
+
+  let depth = 85;
+  let offset = 40;
+
+  if (screenWidth > 800) {
+    depth = 55;
+    offset = 30;
+  } else if (screenWidth > 360) {
+    depth = 85 - (30 / 440) * (screenWidth - 360);
+    offset = 40 - (10 / 440) * (screenWidth - 360);
+  }
+
+  const collider = MeshBuilder.CreateBox(
+    'collider',
+    { width: 1, depth: depth, height: 1 },
+    scene
+  );
+
+  collider.parent = camera;
+  collider.visibility = 0;
+  collider.position = new Vector3(0, 0, offset);
+  collider.isPickable = false;
 };

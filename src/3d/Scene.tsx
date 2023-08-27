@@ -25,7 +25,7 @@ import { styled } from '@mui/system';
 import { Grid, Link, Typography, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
-import { hasTouchScreen, moveToPickedPicture, setupInputs } from './Inputs';
+import { hasTouchScreen, moveToPickedObject, setupInputs } from './Inputs';
 
 const FullView = styled('div')({
   height: '100%',
@@ -85,9 +85,12 @@ const MainScene = ({
           new Vector3(0, 3, 0),
           mainScene
         );
+      }
 
-        mainScene.ambientColor = new Color3(0.2, 0.2, 0.2);
-        mainScene.shadowsEnabled = true;
+      mainScene.ambientColor = new Color3(0.2, 0.2, 0.2);
+      mainScene.shadowsEnabled = true;
+
+      if (!hasTouchScreen()) {
         mainScene.onPrePointerObservable.add((pointerInfo) => {
           if (
             [
@@ -100,11 +103,12 @@ const MainScene = ({
             var height = mainScene.getEngine().getRenderHeight();
 
             const pickingInfo = mainScene.pick(width / 2, height / 2);
-            moveToPickedPicture(pickingInfo, camera);
+            moveToPickedObject(pickingInfo, camera);
             pointerInfo.skipOnPointerObservable = true;
           }
         });
       }
+
       const canvas = mainScene.getEngine().getRenderingCanvas();
 
       camera.setTarget(new Vector3(150, camera.position.y, 0));

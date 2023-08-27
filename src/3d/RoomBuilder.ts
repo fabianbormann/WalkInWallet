@@ -219,7 +219,7 @@ const createRoomTile = (
     probe.renderList?.push(...lampMeshes);
 
     for (const wall of walls) {
-      wall.checkCollisions = false;
+      wall.checkCollisions = true;
       wall.material = wallMaterial;
       wall.receiveShadows = true;
 

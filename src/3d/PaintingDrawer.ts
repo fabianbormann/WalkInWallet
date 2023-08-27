@@ -12,8 +12,6 @@ import {
   MeshBuilder,
   StandardMaterial,
   DynamicTexture,
-  Material,
-  Vector4,
 } from '@babylonjs/core';
 import {
   HudInfos,
@@ -63,7 +61,6 @@ const addDoor = (
     SceneLoader.ImportMesh('', '/models/', 'door.glb', scene, (meshes) => {
       for (const mesh of meshes) {
         if (mesh.name === '__root__') {
-          mesh.name = `${name}#${row}.${col}.${wall}.${side}`;
           mesh.scaling = new Vector3(1, 1, 1);
           if (wall === 'right') {
             mesh.rotation = new Vector3(0, -Math.PI / 2, 0);
@@ -79,10 +76,9 @@ const addDoor = (
             mesh.position = new Vector3(col * 100, 0, row * 100 - 48);
           }
         }
+        mesh.name = `${name}#${row}.${col}.${wall}.${side}`;
+        mesh.checkCollisions = true;
       }
-
-      var f = new Vector4(0.5, 0, 1, 1);
-      var b = new Vector4(0, 0, 0.5, 1);
 
       const plane = MeshBuilder.CreatePlane(
         'textPlane',

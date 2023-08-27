@@ -4,7 +4,7 @@
   "type": "module",
   "license": "GPLv3",
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "build": "tsc && vite build",
     "deploy": "firebase deploy",
     "lint": ""
