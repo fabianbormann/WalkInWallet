@@ -16,6 +16,7 @@
     "@cardano-foundation/cardano-connect-with-wallet-core": "^0.2.3",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.4",
     "axios": "^1.2.2",

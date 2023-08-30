@@ -26,6 +26,7 @@ import { Grid, Link, Typography, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import { hasTouchScreen, moveToPickedObject, setupInputs } from './Inputs';
+import { InstructionOverlay } from '../components/InstructionOverlay';
 
 const FullView = styled('div')({
   height: '100%',
@@ -315,6 +316,7 @@ const MainScene = ({
         antialias
         onSceneReady={(scene) => setMainScene(scene)}
       />
+      <InstructionOverlay />
       <Hud
         style={{
           display: hudDisplayVisible ? 'block' : 'none',

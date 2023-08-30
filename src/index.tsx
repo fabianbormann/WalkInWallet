@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { createTheme, ThemeProvider } from '@mui/material';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 const theme = createTheme({
   palette: {
@@ -11,11 +15,18 @@ const theme = createTheme({
       main: '#12284b',
     },
     secondary: {
+      light: '#FD7CCD',
       main: '#ef2f6d',
+    },
+    success: {
+      main: '#6DFACD',
+    },
+    info: {
+      main: '#00C2D5',
     },
   },
   typography: {
-    fontFamily: ['LibreBaskerville', 'serif'].join(','),
+    fontFamily: ['Roboto', 'sans-serif'].join(','),
   },
 });
 
