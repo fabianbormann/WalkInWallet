@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.3.0...v1.4.0) (2023-08-30)
+
+
+### Features
+
+* add doors and change api to handle general room element rendering ([7a83f2d](https://github.com/fabianbormann/WalkInWallet/commit/7a83f2d32350de989e5bd84aa2c033a8559218b5))
+* add light sources at the ceiling ([7201a9d](https://github.com/fabianbormann/WalkInWallet/commit/7201a9d1fe9fed3a3ff2497f0ba7a72c36418598))
+* add real exit door to navigate back to the welcome screen ([114016a](https://github.com/fabianbormann/WalkInWallet/commit/114016ae61983d32f4c51177b2edf2cb3e803081))
+* show instruction dialog for users visiting WalkInWallet for their first time ([f1a97d6](https://github.com/fabianbormann/WalkInWallet/commit/f1a97d6b42cfd4acf5575631ff2237108beb496b))
+* simulate mouse click in fullscreen always from center ([f773b21](https://github.com/fabianbormann/WalkInWallet/commit/f773b210173d0c2681f0c0d71274aec0d4e943a9))
+
+
+### Bug Fixes
+
+* register double click on mobile instead of space to enter new rooms ([5439482](https://github.com/fabianbormann/WalkInWallet/commit/54394827901d200e5c1b1944e2d2637320690ff4))
+
 ## [1.3.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.2.0...v1.3.0) (2023-08-08)
 
 
