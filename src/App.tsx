@@ -108,7 +108,6 @@ const Main = () => {
     );
 
     roomElements = arrangeGallery(address, rooms, roomElements);
-
     setGallery(rooms);
     setElementsInRoom(roomElements);
     setTotalPages(availablePages);
@@ -136,7 +135,6 @@ const Main = () => {
     if (sceneVisible && elementsInRoom.length > 0) {
       let stopFetching = false;
       const needToStop = () => stopFetching;
-      console.log(elementsInRoom);
       const retryElements = (
         elementsInRoom.filter(
           (roomElement) => roomElement.type === 'picture'

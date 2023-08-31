@@ -35,7 +35,6 @@ export const getStakeAddressFromAdaHandle = async (adaHandle: string) => {
   const paymentRequest = await axios.get(
     `https://api.koios.rest/api/v0/asset_nft_address?_asset_policy=${policyID}&_asset_name=${assetName}`
   );
-  console.log(paymentRequest);
   if (paymentRequest.status === 200 && paymentRequest.data.length > 0) {
     const paymentAddress = paymentRequest.data[0].payment_address;
     return getStakeAddressFromPaymentAddress(paymentAddress);
@@ -84,7 +83,6 @@ export const extractNFTsFromNFTDetailResponse = (
         for (const assetName of Object.keys(assets)) {
           const asset = assets[assetName];
           if (asset.name && assetName === nftDetail.asset_name_ascii) {
-            console.log(asset);
             pictures = [
               ...pictures,
               {
@@ -180,8 +178,6 @@ export const loadPaintings = async (
       htmlImage.setAttribute('crossorigin', 'anonymous');
 
       try {
-        console.log('try to load image', retryObject);
-
         if (Array.isArray(picture.image)) {
           await loadImage(htmlImage, picture.image.join(''));
         } else {

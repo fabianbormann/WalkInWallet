@@ -412,10 +412,12 @@ const drawRoomElement = async (
                   };
                 }
 
+                const isOffline = (roomElement as Picture).offline;
+
                 setHudDisplayVisible(true);
                 setHudInfos({
                   name: roomElement.name,
-                  offline: (roomElement as Picture).offline || true,
+                  offline: typeof isOffline !== 'undefined' ? isOffline : true,
                   description: (roomElement as Picture).description,
                   link: (roomElement as Picture).link,
                 });

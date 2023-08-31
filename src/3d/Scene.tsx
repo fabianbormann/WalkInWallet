@@ -154,23 +154,21 @@ const MainScene = ({
       }
 
       for (const roomElement of roomElements) {
-        if (roomElement.position) {
-          drawRoomElement(
-            roomElement,
-            mainScene,
-            setHudDisplayVisible,
-            setHudInfos,
-            reflectionTexture,
-            (room: number) => {
-              if (room === 0) {
-                navigate('/', { replace: true });
-              } else {
-                navigate(`/${address}/${room}`, { replace: true });
-              }
-            },
-            page
-          );
-        }
+        drawRoomElement(
+          roomElement,
+          mainScene,
+          setHudDisplayVisible,
+          setHudInfos,
+          reflectionTexture,
+          (room: number) => {
+            if (room === 0) {
+              navigate('/', { replace: true });
+            } else {
+              navigate(`/${address}/${room}`, { replace: true });
+            }
+          },
+          page
+        );
       }
 
       mainScene.executeWhenReady(() => onSceneReady());
