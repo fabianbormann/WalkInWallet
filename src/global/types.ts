@@ -132,3 +132,9 @@ export type SceneProps = {
   page: number;
   address: string;
 };
+
+export type RetryObject = {
+  retries: number;
+  ipfsGateway: string;
+  painting: Picture;
+};

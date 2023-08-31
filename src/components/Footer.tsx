@@ -47,9 +47,9 @@ const Footer = () => {
           </IconButton>
           <IconButton
             href={
-              import.meta.env.REACT_APP_VERSION
+              import.meta.env.VITE_VERSION
                 ? `https://github.com/fabianbormann/WalkInWallet/releases/tag/v${
-                    import.meta.env.REACT_APP_VERSION
+                    import.meta.env.VITE_VERSION
                   }`
                 : 'https://github.com/fabianbormann/WalkInWallet'
             }

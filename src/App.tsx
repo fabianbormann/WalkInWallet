@@ -39,6 +39,7 @@ const Main = () => {
     let availablePages = 1;
 
     if (typeof address === 'undefined') return;
+    let nftsToDisplay;
     try {
       let stakeAddress = address;
       if (address.startsWith('addr')) {
@@ -55,43 +56,47 @@ const Main = () => {
         nftDetailResponse = await getNFTsFromPolicyId(stakeAddress);
       }
 
-      const nftsToDisplay = await extractNFTsFromNFTDetailResponse(
+      nftsToDisplay = await extractNFTsFromNFTDetailResponse(
         nftDetailResponse,
         page
       );
-
-      const doors = [];
-      const exitDoor: RoomElement = {
-        type: 'door',
-        name: 'Exit Door',
-        useWholeWall: true,
-      };
-
-      doors.push(exitDoor);
-      availablePages = nftsToDisplay.totalPages;
-
-      if (availablePages > 1 && parseInt(page || '1') < availablePages) {
-        const nextRoomDoor: RoomElement = {
-          type: 'door',
-          name: 'Next Room Door',
-          useWholeWall: true,
-        };
-        doors.push(nextRoomDoor);
-      }
-
-      if (parseInt(page || '1') > 1) {
-        const previousRoomDoor: RoomElement = {
-          type: 'door',
-          name: 'Previous Room Door',
-          useWholeWall: true,
-        };
-        doors.push(previousRoomDoor);
-      }
-
-      roomElements = [...doors, ...nftsToDisplay.pictures];
     } catch (error) {
+      nftsToDisplay = {
+        pictures: [],
+        totalPages: 1,
+      };
       console.error(error);
     }
+
+    const doors = [];
+    const exitDoor: RoomElement = {
+      type: 'door',
+      name: 'Exit Door',
+      useWholeWall: true,
+    };
+
+    doors.push(exitDoor);
+    availablePages = nftsToDisplay.totalPages;
+
+    if (availablePages > 1 && parseInt(page || '1') < availablePages) {
+      const nextRoomDoor: RoomElement = {
+        type: 'door',
+        name: 'Next Room Door',
+        useWholeWall: true,
+      };
+      doors.push(nextRoomDoor);
+    }
+
+    if (parseInt(page || '1') > 1) {
+      const previousRoomDoor: RoomElement = {
+        type: 'door',
+        name: 'Previous Room Door',
+        useWholeWall: true,
+      };
+      doors.push(previousRoomDoor);
+    }
+
+    roomElements = [...doors, ...nftsToDisplay.pictures];
 
     setProgress(21);
     setStage('Collecting NFT metadata and read images');
@@ -131,13 +136,19 @@ const Main = () => {
     if (sceneVisible && elementsInRoom.length > 0) {
       let stopFetching = false;
       const needToStop = () => stopFetching;
-      loadPaintings(
-        elementsInRoom,
-        needToStop,
-        setStage,
-        setProgress,
-        setPaintings
-      );
+      console.log(elementsInRoom);
+      const retryElements = (
+        elementsInRoom.filter(
+          (roomElement) => roomElement.type === 'picture'
+        ) as Array<Picture>
+      ).map((picture) => ({
+        retries: 0,
+        ipfsGateway: 'https://ipfs.io/ipfs/',
+        painting: picture,
+      }));
+      loadPaintings(retryElements, needToStop, setPaintings);
+      setStage('Rendering 3D gallery');
+      setProgress(99);
 
       return () => {
         stopFetching = true;
