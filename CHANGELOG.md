@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.4.0...v1.4.1) (2023-08-31)
+
+
+### Bug Fixes
+
+* frame description was missing as the default for isOffline was always true ([bb54c6d](https://github.com/fabianbormann/WalkInWallet/commit/bb54c6d88f2068ee991dd0dd45cd66dcbc51d131))
+* implement a retry mechanism for handling IPFS timeouts and increase the overall image loading experience by handling non cip25 compliant edge cases closes [#8](https://github.com/fabianbormann/WalkInWallet/issues/8) ([f4de95b](https://github.com/fabianbormann/WalkInWallet/commit/f4de95bbd4d1d3e36821eac60be7f4795d1d16ab))
+
 ## [1.4.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.3.0...v1.4.0) (2023-08-30)
 
 
