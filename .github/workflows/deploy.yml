@@ -23,6 +23,10 @@ jobs:
         run: |
           echo "VITE_VERSION=$npm_package_version" > .env
 
+      - run: |
+          ls -la
+          cat .env
+
       - name: 🔨 Download dependencies and build hosting
         run: npm ci && npm run build
 
