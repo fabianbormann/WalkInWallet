@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.4.1...v1.5.0) (2023-08-31)
+
+
+### Features
+
+* re-enable automatically firebase hosting deployment ([fb916ea](https://github.com/fabianbormann/WalkInWallet/commit/fb916ea1b91742dbf4e89a43881360bf1473a112))
+
 ## [1.4.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.4.0...v1.4.1) (2023-08-31)
 
 
