@@ -19,10 +19,14 @@ const theme = createTheme({
       main: '#ef2f6d',
     },
     success: {
-      main: '#6DFACD',
+      light: '#82D97D',
+      main: '#00B092',
     },
     info: {
       main: '#00C2D5',
+    },
+    warning: {
+      main: '#D6A419',
     },
   },
   typography: {

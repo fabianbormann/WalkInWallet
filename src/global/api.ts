@@ -9,6 +9,14 @@ import {
 import { setupCache, buildWebStorage } from 'axios-cache-interceptor';
 
 const MAX_IPFS_FETCH_RETRIES = 20;
+const currentNetwork = import.meta.env.VITE_NETWORK || 'mainnet';
+let koiosBaseUrl = 'https://api.koios.rest/api/v0/';
+
+if (currentNetwork === 'preprod') {
+  koiosBaseUrl = 'https://preprod.koios.rest/api/v0/';
+} else if (currentNetwork === 'preview') {
+  koiosBaseUrl = 'https://preview.koios.rest/api/v0/';
+}
 
 const axios = setupCache(Axios.create(), {
   storage: buildWebStorage(localStorage, 'axios-cache:'),
@@ -20,7 +28,7 @@ export const getStakeAddressFromPaymentAddress = async (
   paymentAddress: string
 ) => {
   const stakeAddressResponse = (
-    await axios.post(`https://api.koios.rest/api/v0/address_info`, {
+    await axios.post(`${koiosBaseUrl}address_info`, {
       _addresses: [paymentAddress],
     })
   ).data;
@@ -33,7 +41,7 @@ export const getStakeAddressFromAdaHandle = async (adaHandle: string) => {
     ? Buffer.from(adaHandle.slice(1)).toString('hex')
     : Buffer.from(adaHandle).toString('hex');
   const paymentRequest = await axios.get(
-    `https://api.koios.rest/api/v0/asset_nft_address?_asset_policy=${policyID}&_asset_name=${assetName}`
+    `${koiosBaseUrl}asset_nft_address?_asset_policy=${policyID}&_asset_name=${assetName}`
   );
   if (paymentRequest.status === 200 && paymentRequest.data.length > 0) {
     const paymentAddress = paymentRequest.data[0].payment_address;
@@ -47,13 +55,13 @@ export const getStakeAddressFromAdaHandle = async (adaHandle: string) => {
 
 export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
   const nftFetchResponse = (
-    await axios.post('https://api.koios.rest/api/v0/account_assets', {
+    await axios.post(`${koiosBaseUrl}account_assets`, {
       _stake_addresses: [stakeAddress],
     })
   ).data[0] as NftFetchResponse;
 
   return (
-    await axios.post('https://api.koios.rest/api/v0/asset_info', {
+    await axios.post(`${koiosBaseUrl}asset_info`, {
       _asset_list: nftFetchResponse.asset_list.map((asset) => [
         asset.policy_id,
         asset.asset_name,
@@ -65,7 +73,7 @@ export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
 export const getNFTsFromPolicyId = async (policyId: string) => {
   return (
     await axios.get(
-      `https://api.koios.rest/api/v0/policy_asset_info?_asset_policy=${policyId}`
+      `${koiosBaseUrl}policy_asset_info?_asset_policy=${policyId}`
     )
   ).data as NftDetailResponse;
 };

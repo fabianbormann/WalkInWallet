@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import LoginIcon from '@mui/icons-material/Login';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
-import { getEllipsisText } from '../helper';
 import {
   Box,
   Button,
-  Card,
-  CardContent,
-  CardMedia,
   Grid,
   IconButton,
   InputBase,
@@ -19,6 +14,8 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import Header from '../components/Header';
 import Background from '../components/Background';
+import NetworkSwitch from '../components/NetworkSwitch';
+import DemoWallet from '../components/DemoWallet';
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -131,61 +128,7 @@ const Welcome = () => {
             justifyContent: { md: 'flex-start', xs: 'center' },
           }}
         >
-          <Card
-            sx={{ width: 300 }}
-            onClick={() => {
-              window.location.href =
-                '/stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4';
-            }}
-          >
-            <CardMedia
-              component="img"
-              height={180}
-              image="./example_wallet.png"
-              alt="wallet example"
-            />
-            <CardContent>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <LoginIcon color="secondary" />
-                <Box
-                  sx={{
-                    marginLeft: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Typography
-                    gutterBottom
-                    variant="h6"
-                    sx={{ fontSize: '1rem' }}
-                  >
-                    Visit our Demo Gallery
-                  </Typography>
-                  <Link
-                    style={{
-                      textDecoration: 'none',
-                      color: theme.palette.secondary.main,
-                      fontSize: '0.9rem',
-                    }}
-                    to="/stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4"
-                  >
-                    {getEllipsisText(
-                      'stake1u8yf3kcjaaa6hwp9jankxql49kyh2mu02q8454zxzkvzxgg6uhtm4',
-                      10
-                    )}
-                  </Link>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <DemoWallet />
         </Grid>
         <Grid xs={12} container item justifyContent="center">
           <Button
@@ -210,6 +153,7 @@ const Welcome = () => {
             Benefits
           </Button>
         </Grid>
+        <NetworkSwitch />
       </Grid>
       <Footer />
     </Grid>

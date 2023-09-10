@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting
+name: Deploy to Firebase Hosting for Preview Network
 on:
   push:
     branches: ['main']
@@ -14,6 +14,9 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v2
 
+      - name: 🦾 Install jq
+        run: sudo apt-get install jq
+
       - name: 🫡 Setup node
         uses: actions/setup-node@v1
         with:
@@ -22,10 +25,14 @@ jobs:
       - name: 📝 Set version as environment variable
         run: |
           echo 'VITE_VERSION=$npm_package_version' > .env
-          echo 'VITE_NETWORK=mainnet' >> .env
+          echo 'VITE_NETWORK=preview' >> .env
           echo 'VITE_PREPROD_URL=https://preprod.walkinwallet.com' >> .env
           echo 'VITE_PREVIEW_URL=https://preview.walkinwallet.com' >> .env
           echo 'VITE_MAINNET_URL=https://walkinwallet.com' >> .env
+
+      - name: 🔥 Edit firebase.json
+        run: |
+          cat firebase.json | jq '.hosting.site = "preview-walkinwallet"' > tmp && mv tmp firebase.json
 
       - name: 🔨 Download dependencies and build hosting
         run: npm ci && npm run build
@@ -33,6 +40,6 @@ jobs:
       - name: 🚀 Deploy to Firebase hosting
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only hosting
+          args: deploy --only hosting:preview-walkinwallet
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WALKINWALLET }}
