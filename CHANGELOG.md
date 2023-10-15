@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.0...v1.6.1) (2023-10-15)
+
+
+### Bug Fixes
+
+* add correct config for connecting wallets on testnets, prevent axios cors error ([f11d0d5](https://github.com/fabianbormann/WalkInWallet/commit/f11d0d5dc8ec49e0b263d835f2e0b43636239a6e))
+
 ## [1.6.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.5.0...v1.6.0) (2023-09-10)
 
 
