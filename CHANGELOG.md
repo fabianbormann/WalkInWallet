@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.5.0...v1.6.0) (2023-09-10)
+
+
+### Features
+
+* add support for preprod and preview networks ([7692893](https://github.com/fabianbormann/WalkInWallet/commit/769289338bae077efbb6f01187d0035b94e32562))
+
 ## [1.5.0](https://github.com/fabianbormann/WalkInWallet/compare/v1.4.1...v1.5.0) (2023-08-31)
 
 
