@@ -24,6 +24,8 @@ const axios = setupCache(Axios.create(), {
   methods: ['get', 'post'],
 });
 
+const defaultAxios = Axios.create();
+
 export const getStakeAddressFromPaymentAddress = async (
   paymentAddress: string
 ) => {
@@ -54,14 +56,25 @@ export const getStakeAddressFromAdaHandle = async (adaHandle: string) => {
 };
 
 export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
-  const nftFetchResponse = (
-    await axios.post(`${koiosBaseUrl}account_assets`, {
-      _stake_addresses: [stakeAddress],
-    })
-  ).data[0] as NftFetchResponse;
+  let nftFetchResponse;
+
+  try {
+    nftFetchResponse = (
+      await defaultAxios.post(`${koiosBaseUrl}account_assets`, {
+        _stake_addresses: [stakeAddress],
+      })
+    ).data[0] as NftFetchResponse;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.log(axiosError);
+  }
+
+  if (typeof nftFetchResponse === 'undefined') {
+    return { stake_address: stakeAddress, asset_list: [] };
+  }
 
   return (
-    await axios.post(`${koiosBaseUrl}asset_info`, {
+    await defaultAxios.post(`${koiosBaseUrl}asset_info`, {
       _asset_list: nftFetchResponse.asset_list.map((asset) => [
         asset.policy_id,
         asset.asset_name,

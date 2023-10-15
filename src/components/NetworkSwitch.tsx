@@ -1,5 +1,6 @@
 import { Chip, Grid, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { getNetwork } from '../helper';
 
 const NetworkSwitch = () => {
   const theme = useTheme();
@@ -18,13 +19,7 @@ const NetworkSwitch = () => {
     return null;
   }
 
-  const currentNetwork: string =
-    import.meta.env.VITE_NETWORK &&
-    ['mainnet', 'preview', 'preprod', 'MAINNET', 'PREVIEW', 'PREPROD'].includes(
-      import.meta.env.VITE_NETWORK
-    )
-      ? import.meta.env.VITE_NETWORK.toLowerCase()
-      : 'mainnet';
+  const currentNetwork: string = getNetwork();
 
   const getColor = (network: string) => {
     if (network === 'mainnet') {

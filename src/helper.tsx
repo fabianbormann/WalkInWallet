@@ -23,6 +23,15 @@ function useLocalStorage<T>(key: string, initialValue: T) {
   return [storedValue, setValue];
 }
 
+const getNetwork = () => {
+  return import.meta.env.VITE_NETWORK &&
+    ['mainnet', 'preview', 'preprod', 'MAINNET', 'PREVIEW', 'PREPROD'].includes(
+      import.meta.env.VITE_NETWORK
+    )
+    ? import.meta.env.VITE_NETWORK.toLowerCase()
+    : 'mainnet';
+};
+
 const getWindowDimensions = () => {
   const { innerWidth, innerHeight, screen } = window;
   const width = Math.max(screen.width, innerWidth);
@@ -55,4 +64,4 @@ const getEllipsisText = (text: string, n = 12) => {
   return '';
 };
 
-export { useLocalStorage, useWindowDimensions, getEllipsisText };
+export { useLocalStorage, useWindowDimensions, getEllipsisText, getNetwork };

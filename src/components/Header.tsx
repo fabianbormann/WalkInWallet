@@ -13,7 +13,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderProps } from '../global/types';
-import { getEllipsisText } from '../helper';
+import { getEllipsisText, getNetwork } from '../helper';
 import { NetworkType } from '@cardano-foundation/cardano-connect-with-wallet-core';
 
 const Logo = styled('div')<{ image: string; flip?: boolean }>(
@@ -58,7 +58,11 @@ const Header = (props: HeaderProps) => {
 
   const theme = useTheme();
   const navigate = useNavigate();
-  const { stakeAddress } = useCardano();
+  const currentNetwork = getNetwork();
+  const { stakeAddress } = useCardano({
+    limitNetwork:
+      currentNetwork === 'mainnet' ? NetworkType.MAINNET : NetworkType.TESTNET,
+  });
 
   const logoImage =
     props.logoType === 'back' ? 'WalkInWallet_Arrow_Small.png' : 'logo.png';
@@ -124,7 +128,11 @@ const Header = (props: HeaderProps) => {
           dAppUrl="https://walkinwallet.com/"
           customActions={actions}
           peerConnectEnabled={true}
-          limitNetwork={NetworkType.MAINNET}
+          limitNetwork={
+            currentNetwork === 'mainnet'
+              ? NetworkType.MAINNET
+              : NetworkType.TESTNET
+          }
           primaryColor={theme.palette.primary.main}
           borderRadius={4}
           customCSS={`
