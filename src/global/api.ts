@@ -70,7 +70,7 @@ export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
   }
 
   if (typeof nftFetchResponse === 'undefined') {
-    return { stake_address: stakeAddress, asset_list: [] };
+    return [];
   }
 
   return (
