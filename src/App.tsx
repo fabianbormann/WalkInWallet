@@ -21,7 +21,7 @@ import {
   loadPaintings,
 } from './global/api';
 import { FAQ, Welcome, Benefits } from './pages';
-import { Picture, Room, RoomElement } from './global/types';
+import { NftDetailResponse, Picture, Room, RoomElement } from './global/types';
 
 const Main = () => {
   const [progress, setProgress] = useState(0);
@@ -48,7 +48,7 @@ const Main = () => {
         stakeAddress = await getStakeAddressFromAdaHandle(address);
       }
 
-      let nftDetailResponse = [];
+      let nftDetailResponse: NftDetailResponse = [];
 
       if (stakeAddress.startsWith('stake')) {
         nftDetailResponse = await getNFTsFromStakeAddress(stakeAddress);

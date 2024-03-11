@@ -26,6 +26,7 @@ jobs:
           echo 'VITE_PREPROD_URL=https://preprod.walkinwallet.com' >> .env
           echo 'VITE_PREVIEW_URL=https://preview.walkinwallet.com' >> .env
           echo 'VITE_MAINNET_URL=https://walkinwallet.com' >> .env
+          echo 'VITE_KOIOS_API_TOKEN=${{ secrets.KOIOS_API_TOKEN }}' >> .env
 
       - name: 🔨 Download dependencies and build hosting
         run: npm ci && npm run build

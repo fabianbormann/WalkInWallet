@@ -10,6 +10,7 @@ import { setupCache, buildWebStorage } from 'axios-cache-interceptor';
 
 const MAX_IPFS_FETCH_RETRIES = 20;
 const currentNetwork = import.meta.env.VITE_NETWORK || 'mainnet';
+const koiosApiToken = import.meta.env.VITE_KOIOS_API_TOKEN || '';
 let koiosBaseUrl = 'https://api.koios.rest/api/v0/';
 
 if (currentNetwork === 'preprod') {
@@ -25,6 +26,13 @@ const axios = setupCache(Axios.create(), {
 });
 
 const defaultAxios = Axios.create();
+
+if (koiosApiToken) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${koiosApiToken}`;
+  defaultAxios.defaults.headers.common[
+    'Authorization'
+  ] = `Bearer ${koiosApiToken}`;
+}
 
 export const getStakeAddressFromPaymentAddress = async (
   paymentAddress: string

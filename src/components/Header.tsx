@@ -135,6 +135,22 @@ const Header = (props: HeaderProps) => {
           }
           primaryColor={theme.palette.primary.main}
           borderRadius={4}
+          onConnectError={(walletname, error) => {
+            if (error.name === 'WrongNetworkTypeError') {
+              setSnackbarVariant('error');
+              setSnackbarMessage(
+                `Please make sure that you selected the ${currentNetwork} network in your ${walletname} settings.`
+              );
+              setOpen(true);
+            } else {
+              console.warn(error);
+              setSnackbarVariant('error');
+              setSnackbarMessage(
+                `Failed to connect to ${walletname}. Please make sure that you created an account in your wallet app on the ${currentNetwork} network.`
+              );
+              setOpen(true);
+            }
+          }}
           customCSS={`
               padding-top: 8px;
               button {
