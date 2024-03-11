@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.1...v1.6.2) (2023-10-16)
+
+
+### Bug Fixes
+
+* repair build by fixing typescript bug ([b4c51e8](https://github.com/fabianbormann/WalkInWallet/commit/b4c51e83e07e42ccac3f3ff5c66e75f375fd6689))
+
 ## [1.6.1](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.0...v1.6.1) (2023-10-15)
 
 
