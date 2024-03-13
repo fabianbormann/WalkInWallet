@@ -1,6 +1,6 @@
 {
   "name": "walkinwallet",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "type": "module",
   "license": "GPLv3",
   "scripts": {

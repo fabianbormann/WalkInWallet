@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.2...v1.6.3) (2024-03-11)
+
+
+### Bug Fixes
+
+* add default Koios api token to prevent CORS issues ([effe997](https://github.com/fabianbormann/WalkInWallet/commit/effe9979ac83e360c4d44be72cfc37ca700a7254))
+
 ## [1.6.2](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.1...v1.6.2) (2023-10-16)
 
 
