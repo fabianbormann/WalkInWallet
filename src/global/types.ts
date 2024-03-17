@@ -138,3 +138,5 @@ export type RetryObject = {
   ipfsGateway: string;
   painting: Picture;
 };
+
+export type Grid = Array<Array<number>>;

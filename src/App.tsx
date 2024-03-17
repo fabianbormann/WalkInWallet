@@ -22,6 +22,7 @@ import {
 } from './global/api';
 import { FAQ, Welcome, Benefits } from './pages';
 import { NftDetailResponse, Picture, Room, RoomElement } from './global/types';
+import GalleryBuilder from './pages/GalleryBuilder';
 
 const Main = () => {
   const [progress, setProgress] = useState(0);
@@ -233,6 +234,7 @@ const App = () => {
         <Route path="/benefits" element={<Benefits />} />
         <Route path="/:address" element={<Main />} />
         <Route path="/:address/:page" element={<Main />} />
+        <Route path="/gallery-builder" element={<GalleryBuilder />} />
       </Routes>
     </Router>
   );

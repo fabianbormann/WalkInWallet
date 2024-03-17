@@ -33,11 +33,10 @@ const getNetwork = () => {
 };
 
 const getWindowDimensions = () => {
-  const { innerWidth, innerHeight, screen } = window;
-  const width = Math.max(screen.width, innerWidth);
-  const height = Math.max(screen.height, innerHeight);
-
-  return { width, height };
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
 };
 
 const useWindowDimensions = () => {

@@ -522,4 +522,4 @@ const drawRoomElement = async (
   }
 };
 
-export { arrangeGallery, drawRoomElement };
+export { arrangeGallery, drawRoomElement, setupSlots };

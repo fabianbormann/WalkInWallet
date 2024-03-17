@@ -74,6 +74,10 @@ const Header = (props: HeaderProps) => {
           onClick: () => navigate(`/${stakeAddress}`),
         },
         {
+          label: 'Edit Gallery',
+          onClick: () => navigate(`/gallery-builder`),
+        },
+        {
           label: 'Share',
           onClick: () => {
             if (typeof navigator?.share === 'function') {

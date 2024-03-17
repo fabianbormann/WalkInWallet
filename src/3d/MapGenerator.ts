@@ -236,4 +236,9 @@ const buildGallery = (hash: string, paintings: number, page: number) => {
   return rooms;
 };
 
-export { buildGallery };
+export {
+  buildGallery,
+  recalculateSpace,
+  recalculateNeighbourRooms,
+  estimateRoomType,
+};
