@@ -4,13 +4,9 @@ import {
   extractNFTsFromNFTDetailResponse,
   getNFTsFromStakeAddress,
 } from '../global/api';
-import { Grid, Room, RoomElement, RoomType, Slots } from '../global/types';
-import {
-  buildGallery,
-  estimateRoomType,
-  recalculateSpace,
-} from '../3d/MapGenerator';
-import { arrangeGallery, setupSlots } from '../3d/PaintingDrawer';
+import { Grid, Picture, Room, RoomElement } from '../global/types';
+import { recalculateSpace } from '../3d/MapGenerator';
+import { setupSlots } from '../3d/PaintingDrawer';
 import { getNetwork, useWindowDimensions } from '../helper';
 import { NetworkType } from '@cardano-foundation/cardano-connect-with-wallet-core';
 import {
@@ -28,6 +24,15 @@ import {
 } from '@mui/material';
 import Header from '../components/Header';
 import Background from '../components/Background';
+import {
+  arrangeRooms,
+  drawSlots,
+  fromGrid,
+  fromRooms,
+  handleGridClick,
+  isReachable,
+} from '../global/helper';
+import RoomElementSelector from '../components/RoomElementSelector';
 
 const GalleryBuilder = () => {
   const currentNetwork = getNetwork();
@@ -44,8 +49,17 @@ const GalleryBuilder = () => {
   const [requiredSlots, setRequiredSlots] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarVariant, setSnackbarVariant] = useState<AlertColor>('info');
+  const [selectionOpen, setSelectionOpen] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<RoomElement>();
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const { height, width } = useWindowDimensions();
+  const [nfts, setNfts] = useState<{
+    pictures: Array<Picture>;
+    totalPages: number;
+  }>({
+    pictures: [],
+    totalPages: 0,
+  });
+  const { width } = useWindowDimensions();
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -70,212 +84,6 @@ const GalleryBuilder = () => {
       newState[row][col] = Number(!newState[row][col]);
       return newState;
     });
-  };
-
-  const fromGrid = (grid: Grid, border: number): Array<Room> => {
-    const rooms: Array<Room> = [];
-
-    const estimateExtensions = (row: number, col: number): number => {
-      let extensions = 0;
-      if (grid[row - 1]?.[col] === 1) extensions += 1;
-      if (grid[row + 1]?.[col] === 1) extensions += 1;
-      if (grid[row][col - 1] === 1) extensions += 1;
-      if (grid[row][col + 1] === 1) extensions += 1;
-      return extensions;
-    };
-
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
-        if (grid[i][j] === 1) {
-          rooms.push({
-            type: RoomType.SPACE,
-            id: rooms.length,
-            extensions: estimateExtensions(i, j),
-            row: i - border / 2,
-            col: j - border / 2,
-            above: grid[i + 1]?.[j] === 1 ? 0 : -1,
-            below: grid[i - 1]?.[j] === 1 ? 0 : -1,
-            left: grid[i][j - 1] === 1 ? 0 : -1,
-            right: grid[i][j + 1] === 1 ? 0 : -1,
-            space: 0,
-          });
-        }
-      }
-    }
-
-    for (const room of rooms) {
-      room.type = estimateRoomType(room);
-    }
-
-    return rooms;
-  };
-
-  const fromRooms = (rooms: Array<Room>, border: number): Grid => {
-    const roomsWidth =
-      rooms.reduce((a, b) => Math.max(a, b.row), 0) -
-      rooms.reduce((a, b) => Math.min(a, b.row), 0) +
-      1;
-    const roomsHeight =
-      rooms.reduce((a, b) => Math.max(a, b.col), 0) -
-      rooms.reduce((a, b) => Math.min(a, b.col), 0) +
-      1;
-
-    const rows = roomsHeight + border;
-    const cols = roomsWidth + border;
-
-    const size = Math.max(rows, cols);
-
-    const grid = Array.from({ length: size }, () => Array(size).fill(0));
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        if (
-          rooms.find(
-            (room) => room.row + border / 2 === i && room.col + border / 2 === j
-          )
-        ) {
-          grid[i][j] = 1;
-        }
-      }
-    }
-    return grid;
-  };
-
-  const isReachable = (grid: Grid): boolean => {
-    const rows = grid.length;
-    if (rows === 0) return false;
-
-    const cols = grid[0].length;
-
-    function depthFirstSearch(
-      row: number,
-      col: number,
-      visited: boolean[][]
-    ): void {
-      if (
-        row < 0 ||
-        row >= rows ||
-        col < 0 ||
-        col >= cols ||
-        grid[row][col] !== 1 ||
-        visited[row][col]
-      ) {
-        return;
-      }
-
-      visited[row][col] = true;
-
-      depthFirstSearch(row + 1, col, visited);
-      depthFirstSearch(row - 1, col, visited);
-      depthFirstSearch(row, col + 1, visited);
-      depthFirstSearch(row, col - 1, visited);
-    }
-
-    let startRow = grid.findIndex((row) => row.some((cell) => cell === 1));
-    let startCol = grid[startRow].findIndex((cell) => cell === 1);
-    if (startRow === -1) return false;
-
-    const visited: boolean[][] = Array.from({ length: rows }, () =>
-      Array(cols).fill(false)
-    );
-
-    depthFirstSearch(startRow, startCol, visited);
-
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        if (grid[i][j] === 1 && !visited[i][j]) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
-
-  const drawSlots = (
-    slots: Slots | undefined,
-    x: number,
-    y: number,
-    rectWidth: number,
-    rectHeight: number,
-    context: CanvasRenderingContext2D
-  ) => {
-    if (slots) {
-      const slotSize = 0.33 * rectWidth;
-
-      if (slots.top) {
-        if (slots.top[0] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x + rectWidth / 2 - slotSize / 2,
-            y,
-            slotSize,
-            slotSize
-          );
-        }
-        if (slots.top[1] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x + rectWidth / 2 - slotSize / 2,
-            y + rectHeight - slotSize,
-            slotSize,
-            slotSize
-          );
-        }
-      }
-
-      if (slots.bottom) {
-        if (slots.bottom[0] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x + rectWidth - slotSize,
-            y + rectHeight / 2 - slotSize / 2,
-            slotSize,
-            slotSize
-          );
-        }
-        if (slots.bottom[1] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x,
-            y + rectHeight / 2 - slotSize / 2,
-            slotSize,
-            slotSize
-          );
-        }
-      }
-
-      if (slots.left) {
-        if (slots.left[0] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x,
-            y + rectHeight / 2 - slotSize / 2,
-            slotSize,
-            slotSize
-          );
-        }
-        if (slots.left[1] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(x, y + rectHeight - slotSize, slotSize, slotSize);
-        }
-      }
-
-      if (slots.right) {
-        if (slots.right[0] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(x + rectWidth - slotSize, y, slotSize, slotSize);
-        }
-        if (slots.right[1] === 1) {
-          context.fillStyle = 'red';
-          context.fillRect(
-            x + rectWidth - slotSize,
-            y + rectHeight - slotSize,
-            slotSize,
-            slotSize
-          );
-        }
-      }
-    }
   };
 
   useEffect(() => {
@@ -308,8 +116,6 @@ const GalleryBuilder = () => {
               (room) => room.row === i - 1 && room.col === j - 1
             );
 
-            drawSlots(room?.slots, x, y, rectWidth, rectHeight, context);
-
             if (grid[i][j] === 1) {
               context.fillStyle = 'white';
             } else {
@@ -317,6 +123,22 @@ const GalleryBuilder = () => {
             }
 
             context.fillRect(x, y, rectWidth, rectHeight);
+
+            const roomElements = gallery.filter(
+              (roomElement) =>
+                roomElement.position?.col === j - 1 &&
+                roomElement.position?.row === i - 1
+            );
+
+            drawSlots(
+              room?.slots,
+              roomElements,
+              x,
+              y,
+              rectWidth,
+              rectHeight,
+              context
+            );
           }
         }
 
@@ -325,34 +147,61 @@ const GalleryBuilder = () => {
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
 
-          const col = Math.floor(x / (rectWidth + margin));
-          const row = Math.floor(y / (rectHeight + margin));
+          const width = rectWidth + margin;
+          const height = rectHeight + margin;
 
-          if (col === 0 || row === 0) return;
+          const clickSlot = (
+            room: Room,
+            side: 'top' | 'bottom' | 'left' | 'right',
+            index: number
+          ) => {
+            const roomElement = gallery.find(
+              (element) =>
+                element.position?.col === room.col &&
+                element.position?.row === room.row &&
+                element.position?.wall === side &&
+                element.position?.side === index
+            );
+            setSelectedElement(roomElement);
+            setSelectionOpen(true);
+          };
 
-          const maxSize = 10;
-          if (row >= maxSize - 2 || col >= maxSize - 2) return;
+          handleGridClick(
+            grid,
+            x,
+            y,
+            width,
+            height,
+            rooms,
+            clickSlot,
+            (row: number, col: number) => {
+              console.log('click room on position', row, col);
+              // simulate the change and check if it would result in having unreachable fields
+              const gridClone = JSON.parse(JSON.stringify(grid));
+              gridClone[row][col] = Number(!gridClone[row][col]);
 
-          // simulate the change and check if it would result in having unreachable fields
-          const gridClone = JSON.parse(JSON.stringify(grid));
-          gridClone[row][col] = Number(!gridClone[row][col]);
+              const minSize = 2;
+              const hasEnoughActiveFields =
+                gridClone.reduce(
+                  (sum: number, row: Array<number>) =>
+                    sum + row.reduce((rowSum, val) => rowSum + val, 0),
+                  0
+                ) >= minSize;
 
-          const hasNoActiveFields = gridClone.every((row: Array<number>) =>
-            row.every((cell) => cell === 0)
+              if (hasEnoughActiveFields && isReachable(gridClone)) {
+                // apply the change if all '1' fields are still reachable
+                toggleRect(row, col);
+                const updatedRooms = fromGrid(gridClone, 2);
+                setupSlots(updatedRooms);
+                setRooms(updatedRooms);
+                setSpace(recalculateSpace(updatedRooms));
+              }
+            }
           );
-
-          if (!hasNoActiveFields && isReachable(gridClone)) {
-            // apply the change if all '1' fields are still reachable
-            toggleRect(row, col);
-            const updatedRooms = fromGrid(gridClone, 2);
-            setupSlots(updatedRooms);
-            setRooms(updatedRooms);
-            setSpace(recalculateSpace(updatedRooms));
-          }
         };
       }
     }
-  }, [grid, width]);
+  }, [grid, gallery, width]);
 
   useEffect(() => {
     if (gallery.length > 0 && rooms.length > 0) {
@@ -361,54 +210,33 @@ const GalleryBuilder = () => {
   }, [gallery, rooms]);
 
   useEffect(() => {
+    if (stakeAddress && nfts.pictures.length > 0) {
+      const { roomElements, updatedRooms } = arrangeRooms(
+        stakeAddress,
+        nfts.pictures,
+        nfts.totalPages,
+        '1',
+        rooms
+      );
+      setGallery(roomElements);
+
+      if (updatedRooms) {
+        setRooms(updatedRooms);
+      }
+    }
+  }, [stakeAddress, nfts, rooms]);
+
+  useEffect(() => {
     const fetchNFTs = async (stakeAddress: string, page: string) => {
       const nftDetailResponse = await getNFTsFromStakeAddress(stakeAddress);
-
-      const doors = [];
-      const exitDoor: RoomElement = {
-        type: 'door',
-        name: 'Exit Door',
-        useWholeWall: true,
-      };
-
       const nftsToDisplay = await extractNFTsFromNFTDetailResponse(
         nftDetailResponse,
         page
       );
 
-      doors.push(exitDoor);
-      const availablePages = nftsToDisplay.totalPages;
-
-      if (availablePages > 1 && parseInt(page || '1') < availablePages) {
-        const nextRoomDoor: RoomElement = {
-          type: 'door',
-          name: 'Next Room Door',
-          useWholeWall: true,
-        };
-        doors.push(nextRoomDoor);
-      }
-
-      if (parseInt(page || '1') > 1) {
-        const previousRoomDoor: RoomElement = {
-          type: 'door',
-          name: 'Previous Room Door',
-          useWholeWall: true,
-        };
-        doors.push(previousRoomDoor);
-      }
-
-      let roomElements = [...doors, ...nftsToDisplay.pictures];
-      const rooms = buildGallery(
-        stakeAddress,
-        roomElements.length,
-        parseInt(page || '1')
-      );
-
-      roomElements = arrangeGallery(stakeAddress, rooms, roomElements);
-      setGallery(roomElements);
-      setRooms(rooms);
       setSpace(recalculateSpace(rooms));
       setRequiredSlots(nftsToDisplay.pictures.length);
+      setNfts(nftsToDisplay);
       setPage(parseInt(page));
     };
 
@@ -442,6 +270,13 @@ const GalleryBuilder = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+      <RoomElementSelector
+        open={selectionOpen}
+        selectedElement={selectedElement}
+        onClose={() => setSelectionOpen(false)}
+        onSelect={() => {}}
+        roomElements={gallery}
+      />
 
       <Header logoType="back" />
       <Background />
@@ -494,6 +329,8 @@ const GalleryBuilder = () => {
         </TableContainer>
 
         <canvas ref={canvasRef} />
+        <p>Gallery:</p>
+        <pre>{JSON.stringify(gallery, null, 2)}</pre>
         <p>Rooms:</p>
         <pre>{JSON.stringify(rooms, null, 2)}</pre>
       </MuiGrid>

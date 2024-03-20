@@ -140,3 +140,11 @@ export type RetryObject = {
 };
 
 export type Grid = Array<Array<number>>;
+
+export type RoomElementSelectorProps = {
+  open: boolean;
+  selectedElement: RoomElement | undefined;
+  roomElements: Array<RoomElement>;
+  onClose: () => void;
+  onSelect: (element: RoomElement) => void;
+};
