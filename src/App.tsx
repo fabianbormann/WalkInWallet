@@ -23,6 +23,7 @@ import {
 import { FAQ, Welcome, Benefits } from './pages';
 import { NftDetailResponse, Picture, Room, RoomElement } from './global/types';
 import GalleryBuilder from './pages/GalleryBuilder';
+import { v5 as uuidv5 } from 'uuid';
 
 const Main = () => {
   const [progress, setProgress] = useState(0);
@@ -72,6 +73,10 @@ const Main = () => {
     const doors = [];
     const exitDoor: RoomElement = {
       type: 'door',
+      id: uuidv5(
+        `${parseInt(page || '1') + 1}Exit Door`,
+        'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+      ),
       name: 'Exit Door',
       useWholeWall: true,
     };
@@ -82,6 +87,10 @@ const Main = () => {
     if (availablePages > 1 && parseInt(page || '1') < availablePages) {
       const nextRoomDoor: RoomElement = {
         type: 'door',
+        id: uuidv5(
+          `${parseInt(page || '1') + 1}Next Room Door`,
+          'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+        ),
         name: 'Next Room Door',
         useWholeWall: true,
       };
@@ -91,6 +100,10 @@ const Main = () => {
     if (parseInt(page || '1') > 1) {
       const previousRoomDoor: RoomElement = {
         type: 'door',
+        id: uuidv5(
+          `${parseInt(page || '1') - 1}Previous Room Door`,
+          'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+        ),
         name: 'Previous Room Door',
         useWholeWall: true,
       };

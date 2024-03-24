@@ -4,7 +4,13 @@ import {
   extractNFTsFromNFTDetailResponse,
   getNFTsFromStakeAddress,
 } from '../global/api';
-import { Grid, Picture, Room, RoomElement } from '../global/types';
+import {
+  Grid,
+  Picture,
+  Room,
+  RoomElement,
+  RoomElementPosition,
+} from '../global/types';
 import { recalculateSpace } from '../3d/MapGenerator';
 import { setupSlots } from '../3d/PaintingDrawer';
 import { getNetwork, useWindowDimensions } from '../helper';
@@ -48,6 +54,8 @@ const GalleryBuilder = () => {
   const [page, setPage] = useState(1);
   const [requiredSlots, setRequiredSlots] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] =
+    useState<RoomElementPosition>();
   const [snackbarVariant, setSnackbarVariant] = useState<AlertColor>('info');
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [selectedElement, setSelectedElement] = useState<RoomElement>();
@@ -60,6 +68,7 @@ const GalleryBuilder = () => {
     totalPages: 0,
   });
   const { width } = useWindowDimensions();
+  const [overrides, setOverrides] = useState<Array<RoomElement>>([]);
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -152,16 +161,23 @@ const GalleryBuilder = () => {
 
           const clickSlot = (
             room: Room,
-            side: 'top' | 'bottom' | 'left' | 'right',
+            wall: 'top' | 'bottom' | 'left' | 'right',
             index: number
           ) => {
             const roomElement = gallery.find(
               (element) =>
                 element.position?.col === room.col &&
                 element.position?.row === room.row &&
-                element.position?.wall === side &&
-                element.position?.side === index
+                element.position?.wall === wall &&
+                element.position?.side === 1 - index
             );
+            setSelectedPosition({
+              col: room.col,
+              row: room.row,
+              wall: wall,
+              side: 1 - index,
+              hasNeighbour: room.slots?.[wall]?.[index] === 1,
+            });
             setSelectedElement(roomElement);
             setSelectionOpen(true);
           };
@@ -175,7 +191,6 @@ const GalleryBuilder = () => {
             rooms,
             clickSlot,
             (row: number, col: number) => {
-              console.log('click room on position', row, col);
               // simulate the change and check if it would result in having unreachable fields
               const gridClone = JSON.parse(JSON.stringify(grid));
               gridClone[row][col] = Number(!gridClone[row][col]);
@@ -211,12 +226,14 @@ const GalleryBuilder = () => {
 
   useEffect(() => {
     if (stakeAddress && nfts.pictures.length > 0) {
+      console.log('override', overrides);
       const { roomElements, updatedRooms } = arrangeRooms(
         stakeAddress,
         nfts.pictures,
         nfts.totalPages,
         '1',
-        rooms
+        rooms,
+        overrides
       );
       setGallery(roomElements);
 
@@ -224,7 +241,7 @@ const GalleryBuilder = () => {
         setRooms(updatedRooms);
       }
     }
-  }, [stakeAddress, nfts, rooms]);
+  }, [stakeAddress, nfts, rooms, overrides]);
 
   useEffect(() => {
     const fetchNFTs = async (stakeAddress: string, page: string) => {
@@ -272,9 +289,25 @@ const GalleryBuilder = () => {
       </Snackbar>
       <RoomElementSelector
         open={selectionOpen}
+        onError={(error) => showSnackbar(error, 'error')}
         selectedElement={selectedElement}
+        position={selectedPosition!}
         onClose={() => setSelectionOpen(false)}
-        onSelect={() => {}}
+        onSelect={(element, position) => {
+          setSelectedElement(element);
+          const roomElementIndex = overrides.findIndex(
+            (override) => override.id === element.id
+          );
+
+          if (roomElementIndex > -1) {
+            const newOverrides = [...overrides];
+            newOverrides[roomElementIndex] = { ...element, position: position };
+            setOverrides(newOverrides);
+          } else {
+            console.log([...overrides, { ...element, position: position }]);
+            setOverrides([...overrides, { ...element, position: position }]);
+          }
+        }}
         roomElements={gallery}
       />
 
@@ -329,10 +362,6 @@ const GalleryBuilder = () => {
         </TableContainer>
 
         <canvas ref={canvasRef} />
-        <p>Gallery:</p>
-        <pre>{JSON.stringify(gallery, null, 2)}</pre>
-        <p>Rooms:</p>
-        <pre>{JSON.stringify(rooms, null, 2)}</pre>
       </MuiGrid>
     </MuiGrid>
   );

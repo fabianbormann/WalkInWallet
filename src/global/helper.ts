@@ -1,6 +1,15 @@
 import { buildGallery, estimateRoomType } from '../3d/MapGenerator';
 import { arrangeGallery } from '../3d/PaintingDrawer';
-import { Grid, Picture, Room, RoomElement, RoomType, Slots } from './types';
+import {
+  Grid,
+  Picture,
+  Room,
+  RoomElement,
+  RoomElementPosition,
+  RoomType,
+  Slots,
+} from './types';
+import { v5 as uuidv5 } from 'uuid';
 
 const fromGrid = (grid: Grid, border: number): Array<Room> => {
   const rooms: Array<Room> = [];
@@ -275,11 +284,13 @@ const arrangeRooms = (
   pictures: Array<Picture>,
   totalPages: number,
   page: string,
-  rooms: Array<Room>
+  rooms: Array<Room>,
+  overrides?: Array<RoomElement>
 ): { roomElements: Array<RoomElement>; updatedRooms?: Array<Room> } => {
   const doors = [];
   const exitDoor: RoomElement = {
     type: 'door',
+    id: uuidv5(`${page}Exit Door`, 'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'),
     name: 'Exit Door',
     useWholeWall: true,
   };
@@ -290,6 +301,10 @@ const arrangeRooms = (
   if (availablePages > 1 && parseInt(page || '1') < availablePages) {
     const nextRoomDoor: RoomElement = {
       type: 'door',
+      id: uuidv5(
+        `${page}Next Room Door`,
+        'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+      ),
       name: 'Next Room Door',
       useWholeWall: true,
     };
@@ -299,6 +314,10 @@ const arrangeRooms = (
   if (parseInt(page || '1') > 1) {
     const previousRoomDoor: RoomElement = {
       type: 'door',
+      id: uuidv5(
+        `${page}Previous Room Door`,
+        'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+      ),
       name: 'Previous Room Door',
       useWholeWall: true,
     };
@@ -318,6 +337,28 @@ const arrangeRooms = (
   } else {
     const roomsCopy = JSON.parse(JSON.stringify(rooms));
     roomElements = arrangeGallery(stakeAddress, roomsCopy, roomElements);
+
+    const positionExists = (position: RoomElementPosition | undefined) => {
+      if (typeof position === 'undefined') return false;
+
+      return roomsCopy.some(
+        (room: Room) =>
+          room.col === position.col &&
+          room.row === position.row &&
+          typeof room.slots !== 'undefined' &&
+          typeof room.slots[position.wall] !== 'undefined'
+      );
+    };
+
+    for (const override of overrides || []) {
+      const roomElementIndex = roomElements.findIndex(
+        (roomElement) => roomElement.id === override.id
+      );
+      if (roomElementIndex > -1 && positionExists(override.position)) {
+        roomElements[roomElementIndex].position = override.position;
+      }
+    }
+
     return { roomElements: roomElements, updatedRooms: undefined };
   }
 };
@@ -367,21 +408,21 @@ const handleGridClick = (
 
     if (localY < slotSize / 2 && room?.slots?.bottom) {
       if (localX > leftSlotStart && localX < leftSlotEnd) {
-        return onClickSlot(room, 'top', 0);
-      }
-
-      if (localX > rightSlotStart && localX < rightSlotEnd) {
-        return onClickSlot(room, 'top', 1);
-      }
-    }
-
-    if (localY > height - slotSize / 2 && room?.slots?.top) {
-      if (localX > leftSlotStart && localX < leftSlotEnd) {
         return onClickSlot(room, 'bottom', 0);
       }
 
       if (localX > rightSlotStart && localX < rightSlotEnd) {
         return onClickSlot(room, 'bottom', 1);
+      }
+    }
+
+    if (localY > height - slotSize / 2 && room?.slots?.top) {
+      if (localX > leftSlotStart && localX < leftSlotEnd) {
+        return onClickSlot(room, 'top', 0);
+      }
+
+      if (localX > rightSlotStart && localX < rightSlotEnd) {
+        return onClickSlot(room, 'top', 1);
       }
     }
 
@@ -408,6 +449,10 @@ const handleGridClick = (
   return onClickRoom(row, col);
 };
 
+const isPicture = (element: RoomElement): element is Picture => {
+  return (element as Picture).image !== undefined;
+};
+
 export {
   fromGrid,
   fromRooms,
@@ -415,4 +460,5 @@ export {
   drawSlots,
   arrangeRooms,
   handleGridClick,
+  isPicture,
 };

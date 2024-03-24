@@ -7,6 +7,7 @@ import {
   RetryObject,
 } from './types';
 import { setupCache, buildWebStorage } from 'axios-cache-interceptor';
+import { v5 as uuidv5 } from 'uuid';
 
 const MAX_IPFS_FETCH_RETRIES = 20;
 const currentNetwork = import.meta.env.VITE_NETWORK || 'mainnet';
@@ -115,6 +116,10 @@ export const extractNFTsFromNFTDetailResponse = (
             pictures = [
               ...pictures,
               {
+                id: uuidv5(
+                  `${policyId}${Buffer.from(assetName).toString('hex')}`,
+                  'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'
+                ),
                 name: asset.name,
                 type: 'picture',
                 image: asset.image,
@@ -142,7 +147,7 @@ export const extractNFTsFromNFTDetailResponse = (
   return { pictures, totalPages };
 };
 
-const loadImage = (image: HTMLImageElement, blob: string) =>
+export const loadImage = (image: HTMLImageElement, blob: string) =>
   new Promise((resolve, reject) => {
     image.addEventListener('load', () => {
       image.replaceWith(image.cloneNode(true));
@@ -166,7 +171,7 @@ const extractCidFromUrl = (url: string) => {
   return url.split('/').pop();
 };
 
-const replaceIpfsGateway = (url: string, gateway: string) => {
+export const replaceIpfsGateway = (url: string, gateway: string) => {
   const cid = extractCidFromUrl(url);
   return gateway + cid;
 };

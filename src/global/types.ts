@@ -12,6 +12,7 @@ export type RoomElementPosition = {
 
 export type RoomElement = {
   name: string;
+  id: string;
   useWholeWall?: boolean;
   type: 'picture' | 'door';
   position?: RoomElementPosition;
@@ -143,8 +144,10 @@ export type Grid = Array<Array<number>>;
 
 export type RoomElementSelectorProps = {
   open: boolean;
+  position: RoomElementPosition;
   selectedElement: RoomElement | undefined;
   roomElements: Array<RoomElement>;
   onClose: () => void;
-  onSelect: (element: RoomElement) => void;
+  onError: (error: string) => void;
+  onSelect: (element: RoomElement, position: RoomElementPosition) => void;
 };
