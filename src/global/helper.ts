@@ -286,7 +286,7 @@ const arrangeRooms = (
   page: string,
   rooms: Array<Room>,
   overrides?: Array<RoomElement>
-): { roomElements: Array<RoomElement>; updatedRooms?: Array<Room> } => {
+) => {
   const doors = [];
   const exitDoor: RoomElement = {
     type: 'door',
@@ -326,41 +326,31 @@ const arrangeRooms = (
 
   let roomElements = [...doors, ...pictures];
 
-  if (rooms.length === 0) {
-    const updatedRooms = buildGallery(
-      stakeAddress,
-      roomElements.length,
-      parseInt(page || '1')
+  const roomsCopy = JSON.parse(JSON.stringify(rooms));
+  roomElements = arrangeGallery(stakeAddress, roomsCopy, roomElements);
+
+  const positionExists = (position: RoomElementPosition | undefined) => {
+    if (typeof position === 'undefined') return false;
+
+    return roomsCopy.some(
+      (room: Room) =>
+        room.col === position.col &&
+        room.row === position.row &&
+        typeof room.slots !== 'undefined' &&
+        typeof room.slots[position.wall] !== 'undefined'
     );
-    roomElements = arrangeGallery(stakeAddress, updatedRooms, roomElements);
-    return { roomElements, updatedRooms };
-  } else {
-    const roomsCopy = JSON.parse(JSON.stringify(rooms));
-    roomElements = arrangeGallery(stakeAddress, roomsCopy, roomElements);
+  };
 
-    const positionExists = (position: RoomElementPosition | undefined) => {
-      if (typeof position === 'undefined') return false;
-
-      return roomsCopy.some(
-        (room: Room) =>
-          room.col === position.col &&
-          room.row === position.row &&
-          typeof room.slots !== 'undefined' &&
-          typeof room.slots[position.wall] !== 'undefined'
-      );
-    };
-
-    for (const override of overrides || []) {
-      const roomElementIndex = roomElements.findIndex(
-        (roomElement) => roomElement.id === override.id
-      );
-      if (roomElementIndex > -1 && positionExists(override.position)) {
-        roomElements[roomElementIndex].position = override.position;
-      }
+  for (const override of overrides || []) {
+    const roomElementIndex = roomElements.findIndex(
+      (roomElement) => roomElement.id === override.id
+    );
+    if (roomElementIndex > -1 && positionExists(override.position)) {
+      roomElements[roomElementIndex].position = override.position;
     }
-
-    return { roomElements: roomElements, updatedRooms: undefined };
   }
+
+  return roomElements;
 };
 
 const handleGridClick = (

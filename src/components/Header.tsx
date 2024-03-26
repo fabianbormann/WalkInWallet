@@ -113,6 +113,14 @@ const Header = (props: HeaderProps) => {
       ]
     : [];
 
+  const navigateBack = () => {
+    if (typeof props.backLink === 'undefined') {
+      navigate('/');
+    } else {
+      navigate(props.backLink);
+    }
+  };
+
   return (
     <AppBar
       position="static"
@@ -120,7 +128,7 @@ const Header = (props: HeaderProps) => {
       sx={{ backgroundColor: 'rgba(255,255,255,0.8)' }}
     >
       <Toolbar>
-        <Logo image={logoImage} flip onClick={() => navigate('/')}>
+        <Logo image={logoImage} flip onClick={navigateBack}>
           <div />
           <span style={{ fontFamily: 'LibreBaskerville,serif' }}>
             WalkInWallet

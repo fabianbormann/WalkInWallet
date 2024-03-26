@@ -151,3 +151,13 @@ export type RoomElementSelectorProps = {
   onError: (error: string) => void;
   onSelect: (element: RoomElement, position: RoomElementPosition) => void;
 };
+
+export enum RoomGenerationType {
+  RANDOM,
+  MANUAL,
+}
+
+export type GalleryRoom = {
+  rooms: Array<Room>;
+  roomElements: Array<RoomElement>;
+};

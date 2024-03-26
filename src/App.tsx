@@ -24,6 +24,7 @@ import { FAQ, Welcome, Benefits } from './pages';
 import { NftDetailResponse, Picture, Room, RoomElement } from './global/types';
 import GalleryBuilder from './pages/GalleryBuilder';
 import { v5 as uuidv5 } from 'uuid';
+import RoomBuilder from './pages/RoomBuilder';
 
 const Main = () => {
   const [progress, setProgress] = useState(0);
@@ -248,6 +249,7 @@ const App = () => {
         <Route path="/:address" element={<Main />} />
         <Route path="/:address/:page" element={<Main />} />
         <Route path="/gallery-builder" element={<GalleryBuilder />} />
+        <Route path="/room-builder/:roomId" element={<RoomBuilder />} />
       </Routes>
     </Router>
   );
