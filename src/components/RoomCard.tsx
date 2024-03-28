@@ -5,8 +5,15 @@ import {
   CardContent,
   CardMedia,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { GalleryRoom, Room, RoomGenerationType, Slots } from '../global/types';
+import {
+  GalleryRoom,
+  Room,
+  RoomGenerationType,
+  SlotColorCode,
+  Slots,
+} from '../global/types';
 import { useEffect, useRef, useState } from 'react';
 import { drawSlots, fromRooms } from '../global/helper';
 
@@ -20,6 +27,7 @@ const RoomCard = ({
   customizeRoom?: (galleryRoom: GalleryRoom) => void;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const theme = useTheme();
   const [preview, setPreview] = useState<string>('');
 
   const drawRoom = () => {
@@ -35,7 +43,7 @@ const RoomCard = ({
       canvas.height = canvasHeight;
 
       if (context && grid.length > 0) {
-        context.fillStyle = '#333';
+        context.fillStyle = '#000';
         context.fillRect(0, 0, canvasWidth, canvasHeight);
 
         const gridWidth = grid[0].length;
@@ -49,7 +57,7 @@ const RoomCard = ({
             const x = j * (rectWidth + margin) + margin / 2;
             const y = i * (rectHeight + margin) + margin / 2;
 
-            context.fillStyle = 'black';
+            context.fillStyle = theme.palette.primary.dark;
 
             const room = galleryRoom.rooms.find(
               (room) => room.row === i - 1 && room.col === j - 1
@@ -58,7 +66,7 @@ const RoomCard = ({
             if (grid[i][j] === 1) {
               context.fillStyle = 'white';
             } else {
-              context.fillStyle = 'black';
+              context.fillStyle = theme.palette.primary.dark;
             }
 
             context.fillRect(x, y, rectWidth, rectHeight);
@@ -69,6 +77,12 @@ const RoomCard = ({
                 roomElement.position?.row === i - 1
             );
 
+            const slotColorCode: SlotColorCode = {
+              freeSlotColor: theme.palette.success.main,
+              occupiedSlotColor: theme.palette.error.main,
+              doorColor: theme.palette.secondary.main,
+            };
+
             drawSlots(
               room?.slots,
               roomElements,
@@ -76,7 +90,8 @@ const RoomCard = ({
               y,
               rectWidth,
               rectHeight,
-              context
+              context,
+              slotColorCode
             );
 
             setPreview(canvas.toDataURL());

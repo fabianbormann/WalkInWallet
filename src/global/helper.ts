@@ -7,6 +7,7 @@ import {
   RoomElement,
   RoomElementPosition,
   RoomType,
+  SlotColorCode,
   Slots,
 } from './types';
 import { v5 as uuidv5 } from 'uuid';
@@ -137,7 +138,8 @@ const drawSlots = (
   y: number,
   rectWidth: number,
   rectHeight: number,
-  context: CanvasRenderingContext2D
+  context: CanvasRenderingContext2D,
+  slotColorCode: SlotColorCode
 ) => {
   if (slots) {
     const slotSize = 0.3 * rectWidth;
@@ -172,12 +174,16 @@ const drawSlots = (
       return false;
     };
 
+    const doorColor = slotColorCode.doorColor;
+    const freeSlotColor = slotColorCode.freeSlotColor;
+    const occupiedSlotColor = slotColorCode.occupiedSlotColor;
+
     if (slots.top) {
       slots.top.forEach((slot, index) => {
-        context.fillStyle = 'blue';
+        context.fillStyle = freeSlotColor;
 
         if (isSlotOccupiedByDoor('top')) {
-          context.fillStyle = 'green';
+          context.fillStyle = doorColor;
           context.fillRect(
             x + rectWidth / 2 - slotSize,
             y + rectHeight - slotSize / 2,
@@ -186,7 +192,7 @@ const drawSlots = (
           );
         } else {
           if (isSlotOccupied('top', index)) {
-            context.fillStyle = 'red';
+            context.fillStyle = occupiedSlotColor;
           }
           context.fillRect(
             x + rectWidth / 2 + -1.1 * index * slotSize,
@@ -200,10 +206,10 @@ const drawSlots = (
 
     if (slots.bottom) {
       slots.bottom.forEach((slot, index) => {
-        context.fillStyle = 'blue';
+        context.fillStyle = freeSlotColor;
 
         if (isSlotOccupiedByDoor('bottom')) {
-          context.fillStyle = 'green';
+          context.fillStyle = doorColor;
           context.fillRect(
             x + rectWidth / 2 - slotSize,
             y,
@@ -212,7 +218,7 @@ const drawSlots = (
           );
         } else {
           if (isSlotOccupied('bottom', index)) {
-            context.fillStyle = 'red';
+            context.fillStyle = occupiedSlotColor;
           }
           context.fillRect(
             x + rectWidth / 2 + -1.1 * index * slotSize,
@@ -226,10 +232,10 @@ const drawSlots = (
 
     if (slots.left) {
       slots.left.forEach((slot, index) => {
-        context.fillStyle = 'blue';
+        context.fillStyle = freeSlotColor;
 
         if (isSlotOccupiedByDoor('left')) {
-          context.fillStyle = 'green';
+          context.fillStyle = doorColor;
           context.fillRect(
             x,
             y + rectWidth / 2 - slotSize,
@@ -238,7 +244,7 @@ const drawSlots = (
           );
         } else {
           if (isSlotOccupied('left', index)) {
-            context.fillStyle = 'red';
+            context.fillStyle = occupiedSlotColor;
           }
 
           context.fillRect(
@@ -253,10 +259,10 @@ const drawSlots = (
 
     if (slots.right) {
       slots.right.forEach((slot, index) => {
-        context.fillStyle = 'blue';
+        context.fillStyle = freeSlotColor;
 
         if (isSlotOccupiedByDoor('right')) {
-          context.fillStyle = 'green';
+          context.fillStyle = doorColor;
           context.fillRect(
             x + rectWidth - slotSize / 2,
             y + rectWidth / 2 - slotSize,
@@ -265,7 +271,7 @@ const drawSlots = (
           );
         } else {
           if (isSlotOccupied('right', index)) {
-            context.fillStyle = 'red';
+            context.fillStyle = occupiedSlotColor;
           }
           context.fillRect(
             x + rectWidth - slotSize / 2,

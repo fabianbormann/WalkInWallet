@@ -11,6 +11,7 @@ import {
   Room,
   RoomElement,
   RoomElementPosition,
+  SlotColorCode,
 } from '../global/types';
 import { recalculateSpace } from '../3d/MapGenerator';
 import { setupSlots } from '../3d/PaintingDrawer';
@@ -23,6 +24,7 @@ import {
   Grid as MuiGrid,
   Snackbar,
   Typography,
+  useTheme,
 } from '@mui/material';
 import Header from '../components/Header';
 import Background from '../components/Background';
@@ -63,6 +65,7 @@ const RoomBuilder = () => {
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [selectedElement, setSelectedElement] = useState<RoomElement>();
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const theme = useTheme();
   const [nfts, setNfts] = useState<{
     pictures: Array<Picture>;
     totalPages: number;
@@ -108,7 +111,7 @@ const RoomBuilder = () => {
       canvas.height = canvasHeight;
 
       if (context && grid.length > 0) {
-        context.fillStyle = '#333';
+        context.fillStyle = '#000';
         context.fillRect(0, 0, canvasWidth, canvasHeight);
 
         const gridWidth = grid[0].length;
@@ -122,7 +125,7 @@ const RoomBuilder = () => {
             const x = j * (rectWidth + margin) + margin / 2;
             const y = i * (rectHeight + margin) + margin / 2;
 
-            context.fillStyle = 'black';
+            context.fillStyle = theme.palette.primary.dark;
 
             const room = rooms.find(
               (room) => room.row === i - 1 && room.col === j - 1
@@ -131,7 +134,7 @@ const RoomBuilder = () => {
             if (grid[i][j] === 1) {
               context.fillStyle = 'white';
             } else {
-              context.fillStyle = 'black';
+              context.fillStyle = theme.palette.primary.dark;
             }
 
             context.fillRect(x, y, rectWidth, rectHeight);
@@ -142,6 +145,12 @@ const RoomBuilder = () => {
                 roomElement.position?.row === i - 1
             );
 
+            const slotColorCode: SlotColorCode = {
+              freeSlotColor: theme.palette.success.main,
+              occupiedSlotColor: theme.palette.error.light,
+              doorColor: theme.palette.primary.light,
+            };
+
             drawSlots(
               room?.slots,
               roomElements,
@@ -149,7 +158,8 @@ const RoomBuilder = () => {
               y,
               rectWidth,
               rectHeight,
-              context
+              context,
+              slotColorCode
             );
           }
         }

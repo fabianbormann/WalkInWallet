@@ -31,6 +31,13 @@ export interface Picture extends RoomElement {
 
 export type HeaderProps = {
   logoType?: 'full' | 'back';
+  backLink?: string;
+};
+
+export type SlotColorCode = {
+  freeSlotColor: string;
+  occupiedSlotColor: string;
+  doorColor: string;
 };
 
 export type NftFetchResponse = {
