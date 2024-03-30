@@ -43,7 +43,7 @@ const RoomCard = ({
       canvas.height = canvasHeight;
 
       if (context && grid.length > 0) {
-        context.fillStyle = '#000';
+        context.fillStyle = theme.palette.primary.main;
         context.fillRect(0, 0, canvasWidth, canvasHeight);
 
         const gridWidth = grid[0].length;
@@ -79,8 +79,8 @@ const RoomCard = ({
 
             const slotColorCode: SlotColorCode = {
               freeSlotColor: theme.palette.success.main,
-              occupiedSlotColor: theme.palette.error.main,
-              doorColor: theme.palette.secondary.main,
+              occupiedSlotColor: theme.palette.error.light,
+              doorColor: theme.palette.warning.light,
             };
 
             drawSlots(
