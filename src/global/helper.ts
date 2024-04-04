@@ -333,7 +333,6 @@ const arrangeRooms = (
   let roomElements = [...doors, ...pictures];
 
   const roomsCopy = JSON.parse(JSON.stringify(rooms));
-  roomElements = arrangeGallery(stakeAddress, roomsCopy, roomElements);
 
   const positionExists = (position: RoomElementPosition | undefined) => {
     if (typeof position === 'undefined') return false;
@@ -347,6 +346,10 @@ const arrangeRooms = (
     );
   };
 
+  for (const roomElement of roomElements) {
+    roomElement.position = undefined;
+  }
+
   for (const override of overrides || []) {
     const roomElementIndex = roomElements.findIndex(
       (roomElement) => roomElement.id === override.id
@@ -355,6 +358,8 @@ const arrangeRooms = (
       roomElements[roomElementIndex].position = override.position;
     }
   }
+
+  roomElements = arrangeGallery(stakeAddress, roomsCopy, roomElements);
 
   return roomElements;
 };

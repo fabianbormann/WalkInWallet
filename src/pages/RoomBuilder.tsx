@@ -11,6 +11,7 @@ import {
   Room,
   RoomElement,
   RoomElementPosition,
+  Side,
   SlotColorCode,
 } from '../global/types';
 import { recalculateSpace } from '../3d/MapGenerator';
@@ -182,7 +183,8 @@ const RoomBuilder = () => {
                 element.position?.col === room.col &&
                 element.position?.row === room.row &&
                 element.position?.wall === wall &&
-                element.position?.side === 1 - index
+                (element.position?.side === 1 - index ||
+                  element.position?.side === Side.BOTH)
             );
             setSelectedPosition({
               col: room.col,
@@ -337,16 +339,34 @@ const RoomBuilder = () => {
         onClose={() => setSelectionOpen(false)}
         onSelect={(element, position) => {
           setSelectedElement(element);
-          const roomElementIndex = overrides.findIndex(
+
+          // check if there is already an override for this position
+          const previousObject = overrides.find(
+            (override) =>
+              override.position?.col === position.col &&
+              override.position?.row === position.row &&
+              override.position?.wall === position.wall &&
+              (override.position?.side === position.side ||
+                override.position?.side === Side.BOTH)
+          );
+
+          let newOverrides = [...overrides];
+          if (previousObject) {
+            // remove the previous object
+            newOverrides = newOverrides.filter(
+              (override) => override.id !== previousObject.id
+            );
+          }
+
+          const roomElementIndex = newOverrides.findIndex(
             (override) => override.id === element.id
           );
 
           if (roomElementIndex > -1) {
-            const newOverrides = [...overrides];
             newOverrides[roomElementIndex] = { ...element, position: position };
             setOverrides(newOverrides);
           } else {
-            setOverrides([...overrides, { ...element, position: position }]);
+            setOverrides([...newOverrides, { ...element, position: position }]);
           }
         }}
         roomElements={gallery}

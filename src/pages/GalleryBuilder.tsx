@@ -77,7 +77,7 @@ const GalleryBuilder = () => {
       const doors = [];
       const exitDoor: RoomElement = {
         type: 'door',
-        id: uuidv5(`${i}Exit Door`, 'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'),
+        id: uuidv5(`${i + 1}Exit Door`, 'c31ad8be-cbfe-4fb8-a556-01bfe52ce510'),
         name: 'Exit Door',
         useWholeWall: true,
       };
@@ -103,7 +103,6 @@ const GalleryBuilder = () => {
       const { pictures, totalPages } =
         extractNFTsFromNFTDetailResponse(nftDetailResponse);
       setNfts(pictures);
-      console.log(nftDetailResponse);
     };
 
     if (stakeAddress) {

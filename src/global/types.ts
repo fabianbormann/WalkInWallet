@@ -2,11 +2,18 @@ export type NftData = {
   uri: string;
 };
 
+export type Wall = 'top' | 'bottom' | 'left' | 'right';
+export enum Side {
+  LEFT = 0,
+  RIGHT = 1,
+  BOTH = 2,
+}
+
 export type RoomElementPosition = {
   row: number;
   col: number;
-  wall: 'top' | 'bottom' | 'left' | 'right';
-  side: number;
+  wall: Wall;
+  side: Side;
   hasNeighbour: boolean;
 };
 

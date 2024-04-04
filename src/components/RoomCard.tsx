@@ -32,8 +32,6 @@ const RoomCard = ({
 
   const drawRoom = () => {
     if (canvasRef.current) {
-      console.log('galleryRoom', galleryRoom);
-
       const grid = fromRooms(galleryRoom.rooms, 2);
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');

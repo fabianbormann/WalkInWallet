@@ -19,6 +19,8 @@ import {
   Room,
   RoomElement,
   RoomType,
+  Side,
+  Wall,
 } from '../global/types';
 import { Scene } from '@babylonjs/core';
 import { Dispatch, SetStateAction } from 'react';
@@ -197,6 +199,61 @@ const setupSlots = (rooms: Array<Room>) => {
   }
 };
 
+const findRandomRoomWithTwoSlotsAside = (
+  options: Array<Room>,
+  random: seedrandom.PRNG
+) => {
+  return options
+    .map((value) => ({ value, sort: random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value)
+    .find((room) => {
+      return (
+        typeof room.slots !== 'undefined' &&
+        (['top', 'bottom', 'left', 'right'] as Array<Wall>).some((wall) => {
+          const slot = room.slots![wall];
+          return slot && slot[0] === 1 && slot[1] === 1;
+        })
+      );
+    });
+};
+
+const findRandomWallWithTwoSlotsAside = (
+  room: Room,
+  random: seedrandom.PRNG
+): Wall | undefined => {
+  return (['top', 'bottom', 'left', 'right'] as Array<Wall>)
+    .map((value) => ({ value, sort: random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value)
+    .find((wall) => {
+      const slot = room.slots![wall];
+      return slot && slot[0] === 1 && slot[1] === 1;
+    });
+};
+
+const isPositionFree = (
+  position: RoomElement['position'],
+  room: Room,
+  useWholeWall?: boolean
+) => {
+  if (typeof position === 'undefined') {
+    return false;
+  }
+
+  if (room.slots) {
+    const slot = room.slots[position.wall];
+    const isFree = slot && slot[position.side] === 1;
+
+    return (
+      isFree &&
+      ((useWholeWall && slot[1 - position.side] === 1) || !useWholeWall)
+    );
+  }
+
+  return false;
+};
+
 const arrangeGallery = (
   hash: string,
   rooms: Array<Room>,
@@ -207,58 +264,98 @@ const arrangeGallery = (
   setupSlots(options);
 
   for (const roomElement of roomElements) {
-    const choice = options[Math.floor(random() * options.length)];
-
-    if (typeof choice.slots !== 'undefined') {
-      const slots = Object.keys(choice.slots);
-      const slot = slots[Math.floor(random() * slots.length)] as
-        | 'top'
-        | 'bottom'
-        | 'left'
-        | 'right';
-
-      const side = Math.round(random());
-      const chosenSlot = choice.slots[slot];
-
-      if (typeof chosenSlot !== 'undefined') {
+    if (typeof roomElement.position !== 'undefined') {
+      const room = rooms.find(
+        (room) =>
+          room.row === roomElement.position!.row &&
+          room.col === roomElement.position!.col
+      );
+      room!.space -= 1;
+      if (
+        isPositionFree(roomElement.position, room!, roomElement.useWholeWall)
+      ) {
+        room!.slots![roomElement.position.wall]![roomElement.position.side] = 0;
         if (roomElement.useWholeWall) {
+          room!.space -= 1;
+          room!.slots![roomElement.position.wall]![
+            1 - roomElement.position.side
+          ] = 0;
+        }
+
+        if (
+          room!.slots![roomElement.position.wall]![
+            roomElement.position.side
+          ] === 0 &&
+          room!.slots![roomElement.position.wall]![
+            1 - roomElement.position.side
+          ] === 0
+        ) {
+          delete room!.slots![roomElement.position.wall];
+        }
+
+        continue;
+      }
+    }
+
+    if (roomElement.useWholeWall) {
+      const choice = findRandomRoomWithTwoSlotsAside(options, random);
+      if (choice) {
+        const wall = findRandomWallWithTwoSlotsAside(choice, random);
+        if (wall) {
           roomElement.position = {
             row: choice.row,
             col: choice.col,
-            wall: slot,
-            side: side,
+            wall: wall,
+            side: Side.BOTH,
             hasNeighbour: false,
           };
-          chosenSlot[0] = 0;
-          chosenSlot[1] = 0;
+          choice.slots![wall]![0] = 0;
+          choice.slots![wall]![1] = 0;
           choice.space -= 2;
-        } else if (chosenSlot[side] === 1) {
-          roomElement.position = {
-            row: choice.row,
-            col: choice.col,
-            wall: slot,
-            side: side,
-            hasNeighbour: false,
-          };
-          chosenSlot[side] = 0;
-          choice.space -= 1;
-        } else {
-          roomElement.position = {
-            row: choice.row,
-            col: choice.col,
-            wall: slot,
-            side: 1 - side,
-            hasNeighbour: false,
-          };
-          chosenSlot[1 - side] = 0;
-          choice.space -= 1;
         }
+      }
+    } else {
+      const choice = options[Math.floor(random() * options.length)];
+      if (typeof choice.slots !== 'undefined') {
+        const slots = Object.keys(choice.slots);
+        const slot = slots[Math.floor(random() * slots.length)] as
+          | 'top'
+          | 'bottom'
+          | 'left'
+          | 'right';
 
-        if (chosenSlot[side] === 0 && chosenSlot[1 - side] === 0) {
-          delete choice.slots[slot];
+        const side = Math.round(random());
+        const chosenSlot = choice.slots[slot];
+
+        if (typeof chosenSlot !== 'undefined') {
+          if (chosenSlot[side] === 1) {
+            roomElement.position = {
+              row: choice.row,
+              col: choice.col,
+              wall: slot,
+              side: side,
+              hasNeighbour: false,
+            };
+            chosenSlot[side] = 0;
+            choice.space -= 1;
+          } else {
+            roomElement.position = {
+              row: choice.row,
+              col: choice.col,
+              wall: slot,
+              side: 1 - side,
+              hasNeighbour: false,
+            };
+            chosenSlot[1 - side] = 0;
+            choice.space -= 1;
+          }
+
+          if (chosenSlot[side] === 0 && chosenSlot[1 - side] === 0) {
+            delete choice.slots[slot];
+          }
+
+          options = options.filter((room) => room.space > 0);
         }
-
-        options = options.filter((room) => room.space > 0);
       }
     }
   }
