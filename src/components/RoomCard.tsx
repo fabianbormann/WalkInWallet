@@ -11,6 +11,8 @@ import {
   GalleryRoom,
   Room,
   RoomGenerationType,
+  Slot,
+  SlotAllocation,
   SlotColorCode,
   Slots,
 } from '../global/types';
@@ -106,10 +108,16 @@ const RoomCard = ({
   let slots = 0;
   for (const room of galleryRoom.rooms) {
     const walls: (keyof Slots)[] = ['top', 'left', 'right', 'bottom'];
+    const sides: (keyof Slot)[] = ['leftSide', 'rightSide'];
     for (const wall of walls) {
       if (wall && room.slots) {
-        if (typeof room.slots[wall] !== 'undefined') {
-          slots += room.slots[wall]?.reduce((acc, slot) => acc + slot, 0) || 0;
+        for (const side of sides) {
+          if (
+            typeof room.slots[wall] !== 'undefined' &&
+            room.slots[wall]![side] === SlotAllocation.FREE
+          ) {
+            slots += 1;
+          }
         }
       }
     }

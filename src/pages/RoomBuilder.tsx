@@ -11,8 +11,12 @@ import {
   Room,
   RoomElement,
   RoomElementPosition,
-  Side,
+  Slot,
+  SlotAllocation,
   SlotColorCode,
+  Slots,
+  Wall,
+  WallSide,
 } from '../global/types';
 import { recalculateSpace } from '../3d/MapGenerator';
 import { setupSlots } from '../3d/PaintingDrawer';
@@ -173,25 +177,23 @@ const RoomBuilder = () => {
           const width = rectWidth + margin;
           const height = rectHeight + margin;
 
-          const clickSlot = (
-            room: Room,
-            wall: 'top' | 'bottom' | 'left' | 'right',
-            index: number
-          ) => {
+          const clickSlot = (room: Room, wall: Wall, side: WallSide) => {
             const roomElement = gallery.find(
               (element) =>
                 element.position?.col === room.col &&
                 element.position?.row === room.row &&
                 element.position?.wall === wall &&
-                (element.position?.side === 1 - index ||
-                  element.position?.side === Side.BOTH)
+                (element.position?.side === side ||
+                  element.position?.side === WallSide.BOTH)
             );
             setSelectedPosition({
               col: room.col,
               row: room.row,
               wall: wall,
-              side: 1 - index,
-              hasNeighbour: room.slots?.[wall]?.[index] === 1,
+              side: side,
+              hasNeighbour:
+                side === WallSide.BOTH ||
+                room.slots?.[wall]?.[side] === SlotAllocation.OCCUPIED,
             });
             setSelectedElement(roomElement);
             setSelectionOpen(true);
@@ -347,7 +349,7 @@ const RoomBuilder = () => {
               override.position?.row === position.row &&
               override.position?.wall === position.wall &&
               (override.position?.side === position.side ||
-                override.position?.side === Side.BOTH)
+                override.position?.side === WallSide.BOTH)
           );
 
           let newOverrides = [...overrides];

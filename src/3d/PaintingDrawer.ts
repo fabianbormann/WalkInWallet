@@ -19,8 +19,10 @@ import {
   Room,
   RoomElement,
   RoomType,
-  Side,
+  Slot,
+  SlotAllocation,
   Wall,
+  WallSide,
 } from '../global/types';
 import { Scene } from '@babylonjs/core';
 import { Dispatch, SetStateAction } from 'react';
@@ -54,7 +56,7 @@ const addDoor = (
   row: number,
   col: number,
   wall: 'top' | 'bottom' | 'left' | 'right',
-  side: number,
+  side: WallSide,
   gotoRoom: (room: number) => void,
   name: string,
   currentRoom: number
@@ -132,66 +134,116 @@ const addDoor = (
 const setupSlots = (rooms: Array<Room>) => {
   for (const room of rooms) {
     if (room.type === RoomType.BOTTOM_CLOSED) {
-      room.slots = { bottom: [1, 1] };
+      room.slots = {
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+      };
     } else if (room.type === RoomType.TOP_CLOSED) {
-      room.slots = { top: [1, 1] };
+      room.slots = {
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+      };
     } else if (room.type === RoomType.LEFT_CLOSED) {
-      room.slots = { left: [1, 1] };
+      room.slots = {
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+      };
     } else if (room.type === RoomType.RIGHT_CLOSED) {
-      room.slots = { right: [1, 1] };
+      room.slots = {
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+      };
     } else if (room.type === RoomType.BOTTOM_OPEN) {
       room.slots = {
-        top: [1, 1],
-        left: [1, 1],
-        right: [1, 1],
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.TOP_OPEN) {
       room.slots = {
-        bottom: [1, 1],
-        left: [1, 1],
-        right: [1, 1],
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.LEFT_OPEN) {
       room.slots = {
-        top: [1, 1],
-        bottom: [1, 1],
-        right: [1, 1],
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.RIGHT_OPEN) {
       room.slots = {
-        top: [1, 1],
-        left: [1, 1],
-        bottom: [1, 1],
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.CORNER_LEFT_BOTTOM) {
       room.slots = {
-        left: [1, 1],
-        bottom: [1, 1],
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.CORNER_LEFT_TOP) {
       room.slots = {
-        left: [1, 1],
-        top: [1, 1],
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
       };
     } else if (room.type === RoomType.CORNER_RIGHT_BOTTOM) {
       room.slots = {
-        right: [1, 1],
-        bottom: [1, 1],
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.CORNER_RIGHT_TOP) {
       room.slots = {
-        right: [1, 1],
-        top: [1, 1],
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
       };
     } else if (room.type === RoomType.HORIZONTAL_FLOOR) {
       room.slots = {
-        bottom: [1, 1],
-        top: [1, 1],
+        bottom: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
+        top: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
       };
     } else if (room.type === RoomType.VERTICAL_FLOOR) {
       room.slots = {
-        left: [1, 1],
-        right: [1, 1],
+        left: { leftSide: SlotAllocation.FREE, rightSide: SlotAllocation.FREE },
+        right: {
+          leftSide: SlotAllocation.FREE,
+          rightSide: SlotAllocation.FREE,
+        },
       };
     } else if (room.type === RoomType.SPACE) {
       room.slots = {};
@@ -212,7 +264,11 @@ const findRandomRoomWithTwoSlotsAside = (
         typeof room.slots !== 'undefined' &&
         (['top', 'bottom', 'left', 'right'] as Array<Wall>).some((wall) => {
           const slot = room.slots![wall];
-          return slot && slot[0] === 1 && slot[1] === 1;
+          return (
+            slot &&
+            slot.leftSide === SlotAllocation.FREE &&
+            slot.rightSide === SlotAllocation.FREE
+          );
         })
       );
     });
@@ -228,26 +284,28 @@ const findRandomWallWithTwoSlotsAside = (
     .map(({ value }) => value)
     .find((wall) => {
       const slot = room.slots![wall];
-      return slot && slot[0] === 1 && slot[1] === 1;
+      return (
+        slot &&
+        slot.leftSide === SlotAllocation.FREE &&
+        slot.rightSide === SlotAllocation.FREE
+      );
     });
 };
 
-const isPositionFree = (
-  position: RoomElement['position'],
-  room: Room,
-  useWholeWall?: boolean
-) => {
+const isPositionFree = (position: RoomElement['position'], room: Room) => {
   if (typeof position === 'undefined') {
     return false;
   }
 
   if (room.slots) {
     const slot = room.slots[position.wall];
-    const isFree = slot && slot[position.side] === 1;
-
     return (
-      isFree &&
-      ((useWholeWall && slot[1 - position.side] === 1) || !useWholeWall)
+      slot &&
+      ((position.side === WallSide.BOTH &&
+        slot.leftSide === SlotAllocation.FREE &&
+        slot.rightSide === SlotAllocation.FREE) ||
+        (position.side !== WallSide.BOTH &&
+          slot[position.side] === SlotAllocation.FREE))
     );
   }
 
@@ -270,27 +328,17 @@ const arrangeGallery = (
           room.row === roomElement.position!.row &&
           room.col === roomElement.position!.col
       );
-      room!.space -= 1;
-      if (
-        isPositionFree(roomElement.position, room!, roomElement.useWholeWall)
-      ) {
-        room!.slots![roomElement.position.wall]![roomElement.position.side] = 0;
+      if (isPositionFree(roomElement.position, room!)) {
         if (roomElement.useWholeWall) {
+          room!.space -= 2;
+          room!.slots![roomElement.position.wall]!.leftSide =
+            SlotAllocation.OCCUPIED;
+          room!.slots![roomElement.position.wall]!.rightSide =
+            SlotAllocation.OCCUPIED;
+        } else if (roomElement.position.side !== WallSide.BOTH) {
           room!.space -= 1;
-          room!.slots![roomElement.position.wall]![
-            1 - roomElement.position.side
-          ] = 0;
-        }
-
-        if (
-          room!.slots![roomElement.position.wall]![
-            roomElement.position.side
-          ] === 0 &&
-          room!.slots![roomElement.position.wall]![
-            1 - roomElement.position.side
-          ] === 0
-        ) {
-          delete room!.slots![roomElement.position.wall];
+          room!.slots![roomElement.position.wall]![roomElement.position.side] =
+            SlotAllocation.OCCUPIED;
         }
 
         continue;
@@ -306,52 +354,63 @@ const arrangeGallery = (
             row: choice.row,
             col: choice.col,
             wall: wall,
-            side: Side.BOTH,
+            side: WallSide.BOTH,
             hasNeighbour: false,
           };
-          choice.slots![wall]![0] = 0;
-          choice.slots![wall]![1] = 0;
+          choice.slots![wall]!.leftSide = SlotAllocation.OCCUPIED;
+          choice.slots![wall]!.rightSide = SlotAllocation.OCCUPIED;
           choice.space -= 2;
         }
       }
     } else {
       const choice = options[Math.floor(random() * options.length)];
       if (typeof choice.slots !== 'undefined') {
-        const slots = Object.keys(choice.slots);
-        const slot = slots[Math.floor(random() * slots.length)] as
+        const slotOptions = (
+          ['top', 'bottom', 'left', 'right'] as Array<Wall>
+        ).filter((wall) => {
+          const slot = choice.slots![wall];
+          return (
+            slot &&
+            (slot.leftSide === SlotAllocation.FREE ||
+              slot.rightSide === SlotAllocation.FREE)
+          );
+        });
+        const slot = slotOptions[Math.floor(random() * slotOptions.length)] as
           | 'top'
           | 'bottom'
           | 'left'
           | 'right';
 
-        const side = Math.round(random());
+        const side = ['leftSide', 'rightSide'][Math.round(random())] as
+          | 'leftSide'
+          | 'rightSide';
         const chosenSlot = choice.slots[slot];
 
+        const wallSide = side === 'leftSide' ? WallSide.LEFT : WallSide.RIGHT;
+        const oppositeSide =
+          side === 'leftSide' ? WallSide.RIGHT : WallSide.LEFT;
+
         if (typeof chosenSlot !== 'undefined') {
-          if (chosenSlot[side] === 1) {
+          if (chosenSlot[side] === SlotAllocation.FREE) {
             roomElement.position = {
               row: choice.row,
               col: choice.col,
               wall: slot,
-              side: side,
+              side: wallSide,
               hasNeighbour: false,
             };
-            chosenSlot[side] = 0;
+            chosenSlot[side] = SlotAllocation.OCCUPIED;
             choice.space -= 1;
           } else {
             roomElement.position = {
               row: choice.row,
               col: choice.col,
               wall: slot,
-              side: 1 - side,
+              side: oppositeSide,
               hasNeighbour: false,
             };
-            chosenSlot[1 - side] = 0;
+            chosenSlot[oppositeSide] = SlotAllocation.OCCUPIED;
             choice.space -= 1;
-          }
-
-          if (chosenSlot[side] === 0 && chosenSlot[1 - side] === 0) {
-            delete choice.slots[slot];
           }
 
           options = options.filter((room) => room.space > 0);
@@ -359,6 +418,10 @@ const arrangeGallery = (
       }
     }
   }
+
+  const getOppositeSide = (side: WallSide) => {
+    return side === WallSide.LEFT ? WallSide.RIGHT : WallSide.LEFT;
+  };
 
   for (const roomElement of roomElements) {
     if (roomElement.position) {
@@ -369,7 +432,7 @@ const arrangeGallery = (
           candidate.position?.row === row &&
           candidate.position?.col === col &&
           candidate.position?.wall === wall &&
-          candidate.position?.side === 1 - side
+          candidate.position?.side === getOppositeSide(side)
       );
       roomElement.position.hasNeighbour = neighbours.length > 0;
     }
@@ -397,9 +460,9 @@ const drawRoomElement = async (
     if (wall === 'bottom') {
       rowOffset -= 91.9;
 
-      if (side === 0 && hasNeighbour) {
+      if (side === WallSide.LEFT && hasNeighbour) {
         colOffset -= 15;
-      } else if (side === 1 && hasNeighbour) {
+      } else if (side === WallSide.RIGHT && hasNeighbour) {
         colOffset += 30;
       }
 
@@ -409,9 +472,9 @@ const drawRoomElement = async (
     if (wall === 'top') {
       rowOffset += 3.5;
 
-      if (side === 0 && hasNeighbour) {
+      if (side === WallSide.LEFT && hasNeighbour) {
         colOffset -= 20;
-      } else if (side === 1 && hasNeighbour) {
+      } else if (side === WallSide.RIGHT && hasNeighbour) {
         colOffset += 22.5;
       }
     }
@@ -421,9 +484,9 @@ const drawRoomElement = async (
       rowOffset -= 46.25;
       colOffset += 53.9;
 
-      if (side === 0 && hasNeighbour) {
+      if (side === WallSide.LEFT && hasNeighbour) {
         rowOffset -= 22.5;
-      } else if (side === 1 && hasNeighbour) {
+      } else if (side === WallSide.RIGHT && hasNeighbour) {
         rowOffset += 22.5;
       }
     }
@@ -433,9 +496,9 @@ const drawRoomElement = async (
       rowOffset -= 46.25;
       colOffset -= 41.9;
 
-      if (side === 0 && hasNeighbour) {
+      if (side === WallSide.LEFT && hasNeighbour) {
         rowOffset -= 20;
-      } else if (side === 1 && hasNeighbour) {
+      } else if (side === WallSide.RIGHT && hasNeighbour) {
         rowOffset += 20;
       }
     }

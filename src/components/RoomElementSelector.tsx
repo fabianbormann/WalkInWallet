@@ -15,6 +15,7 @@ import {
   TextField,
   TextFieldProps,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { Picture, RoomElementSelectorProps } from '../global/types';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,6 +26,8 @@ import { useEffect, useState } from 'react';
 const RoomElementSelector = (props: RoomElementSelectorProps) => {
   const [imageBlob, setImageBlob] = useState<string>('');
   const [searchText, setSearchText] = useState<string>('');
+  const [slotBehavior, setSlotBehavior] = useState('random');
+  const theme = useTheme();
 
   useEffect(() => {
     if (typeof props.selectedElement !== 'undefined') {
@@ -111,11 +114,15 @@ const RoomElementSelector = (props: RoomElementSelectorProps) => {
                   sx={{
                     width: 'min(50vw, 300px)',
                     height: 'min(50vw, 300px)',
-                    backgroundColor: containsPicture ? 'transparent' : 'gray',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
                     mb: 2,
+                    backgroundColor: containsPicture
+                      ? 'transparent'
+                      : theme.palette.secondary.main,
+                    opacity: 0.8,
+                    backgroundImage: `repeating-radial-gradient( circle at 0 0, transparent 0, #FFFFFF 40px ), repeating-linear-gradient( ${theme.palette.secondary.light}55, ${theme.palette.secondary.light} );`,
                   }}
                 >
                   {containsPicture && (
@@ -129,7 +136,15 @@ const RoomElementSelector = (props: RoomElementSelectorProps) => {
                     />
                   )}
 
-                  <Typography variant="h6" color="white">
+                  <Typography
+                    variant="h6"
+                    color="white"
+                    sx={{
+                      background: theme.palette.primary.dark,
+                      px: 2,
+                      py: 1,
+                    }}
+                  >
                     {previewText}
                   </Typography>
                 </Box>
@@ -142,25 +157,52 @@ const RoomElementSelector = (props: RoomElementSelectorProps) => {
                   sm={4}
                   sx={{ justifyContent: 'center' }}
                 >
-                  <FormControl>
-                    <FormLabel>Ownership Management</FormLabel>
-                    <FormHelperText>
-                      What should happen if the wallet doesn't own the NFT
-                      anymore?
-                    </FormHelperText>
-                    <RadioGroup defaultValue="random">
-                      <FormControlLabel
-                        value="random"
-                        control={<Radio />}
-                        label="Transform to Random Slot"
-                      />
-                      <FormControlLabel
-                        value="empty"
-                        control={<Radio />}
-                        label="Keep Slot Empty"
-                      />
-                    </RadioGroup>
-                  </FormControl>
+                  {typeof props.selectedElement !== 'undefined' ? (
+                    <FormControl>
+                      <FormLabel>Ownership Management</FormLabel>
+                      <FormHelperText>
+                        What should happen if the wallet doesn't own the NFT
+                        anymore?
+                      </FormHelperText>
+                      <RadioGroup defaultValue="random">
+                        <FormControlLabel
+                          value="random"
+                          control={<Radio />}
+                          label="Transform to Random Slot"
+                        />
+                        <FormControlLabel
+                          value="empty"
+                          control={<Radio />}
+                          label="Keep Slot Empty"
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  ) : (
+                    <FormControl>
+                      <FormLabel>General Slot Bahvior</FormLabel>
+                      <FormHelperText>
+                        You can disable this slot to keep the wall clear and
+                        ensure it's not available for random placements.
+                      </FormHelperText>
+                      <RadioGroup
+                        onChange={(event) => {
+                          setSlotBehavior(event.target.value);
+                        }}
+                        value={slotBehavior}
+                      >
+                        <FormControlLabel
+                          value="random"
+                          control={<Radio />}
+                          label="Available for Random Placement"
+                        />
+                        <FormControlLabel
+                          value="disabled"
+                          control={<Radio />}
+                          label="Disable Slot"
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  )}
                 </Grid>
               )}
             </Grid>

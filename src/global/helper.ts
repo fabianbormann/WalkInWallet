@@ -7,8 +7,11 @@ import {
   RoomElement,
   RoomElementPosition,
   RoomType,
+  Slot,
+  SlotAllocation,
   SlotColorCode,
   Slots,
+  WallSide,
 } from './types';
 import { v5 as uuidv5 } from 'uuid';
 
@@ -145,7 +148,7 @@ const drawSlots = (
     const slotSize = 0.3 * rectWidth;
     const isSlotOccupied = (
       wall: 'top' | 'bottom' | 'left' | 'right',
-      side: number
+      side: 'leftSide' | 'rightSide'
     ) => {
       if (roomElements) {
         const slot = roomElements.find(
@@ -178,109 +181,55 @@ const drawSlots = (
     const freeSlotColor = slotColorCode.freeSlotColor;
     const occupiedSlotColor = slotColorCode.occupiedSlotColor;
 
-    if (slots.top) {
-      slots.top.forEach((slot, index) => {
-        context.fillStyle = freeSlotColor;
+    const walls: (keyof Slots)[] = ['top', 'bottom', 'left', 'right'];
+    const sides: (keyof Slot)[] = ['leftSide', 'rightSide'];
 
-        if (isSlotOccupiedByDoor('top')) {
-          context.fillStyle = doorColor;
-          context.fillRect(
-            x + rectWidth / 2 - slotSize,
-            y + rectHeight - slotSize / 2,
-            slotSize * 2,
-            slotSize / 2
-          );
-        } else {
-          if (isSlotOccupied('top', index)) {
-            context.fillStyle = occupiedSlotColor;
-          }
-          context.fillRect(
-            x + rectWidth / 2 + -1.1 * index * slotSize,
-            y + rectHeight - slotSize / 2,
-            slotSize,
-            slotSize / 2
-          );
-        }
-      });
-    }
+    for (const wall of walls) {
+      if (slots[wall]) {
+        for (const side of sides) {
+          context.fillStyle = freeSlotColor;
 
-    if (slots.bottom) {
-      slots.bottom.forEach((slot, index) => {
-        context.fillStyle = freeSlotColor;
-
-        if (isSlotOccupiedByDoor('bottom')) {
-          context.fillStyle = doorColor;
-          context.fillRect(
-            x + rectWidth / 2 - slotSize,
-            y,
-            slotSize * 2,
-            slotSize / 2
-          );
-        } else {
-          if (isSlotOccupied('bottom', index)) {
-            context.fillStyle = occupiedSlotColor;
-          }
-          context.fillRect(
-            x + rectWidth / 2 + -1.1 * index * slotSize,
-            y,
-            slotSize,
-            slotSize / 2
-          );
-        }
-      });
-    }
-
-    if (slots.left) {
-      slots.left.forEach((slot, index) => {
-        context.fillStyle = freeSlotColor;
-
-        if (isSlotOccupiedByDoor('left')) {
-          context.fillStyle = doorColor;
-          context.fillRect(
-            x,
-            y + rectWidth / 2 - slotSize,
-            slotSize / 2,
-            slotSize * 2
-          );
-        } else {
-          if (isSlotOccupied('left', index)) {
+          let slotWidth = slotSize;
+          let offset = side === 'leftSide' ? 1.1 : 0;
+          if (isSlotOccupiedByDoor(wall)) {
+            context.fillStyle = doorColor;
+            offset = 1;
+            slotWidth = slotSize * 2;
+          } else if (isSlotOccupied(wall, side)) {
             context.fillStyle = occupiedSlotColor;
           }
 
-          context.fillRect(
-            x,
-            y + rectWidth / 2 + -1.1 * index * slotSize,
-            slotSize / 2,
-            slotSize
-          );
-        }
-      });
-    }
-
-    if (slots.right) {
-      slots.right.forEach((slot, index) => {
-        context.fillStyle = freeSlotColor;
-
-        if (isSlotOccupiedByDoor('right')) {
-          context.fillStyle = doorColor;
-          context.fillRect(
-            x + rectWidth - slotSize / 2,
-            y + rectWidth / 2 - slotSize,
-            slotSize / 2,
-            slotSize * 2
-          );
-        } else {
-          if (isSlotOccupied('right', index)) {
-            context.fillStyle = occupiedSlotColor;
+          if (wall === 'top') {
+            context.fillRect(
+              x + rectWidth / 2 - offset * slotSize,
+              y + rectHeight - slotSize / 2,
+              slotWidth,
+              slotSize / 2
+            );
+          } else if (wall === 'bottom') {
+            context.fillRect(
+              x + rectWidth / 2 - offset * slotSize,
+              y,
+              slotWidth,
+              slotSize / 2
+            );
+          } else if (wall === 'left') {
+            context.fillRect(
+              x,
+              y + rectWidth / 2 - offset * slotSize,
+              slotSize / 2,
+              slotWidth
+            );
+          } else if (wall === 'right') {
+            context.fillRect(
+              x + rectWidth - slotSize / 2,
+              y + rectWidth / 2 - offset * slotSize,
+              slotSize / 2,
+              slotWidth
+            );
           }
-          context.fillRect(
-            x + rectWidth - slotSize / 2,
-            y + rectWidth / 2 + -1.1 * index * slotSize,
-            slotSize / 2,
-            slotSize
-          );
         }
-      });
+      }
     }
   }
 };
@@ -409,41 +358,41 @@ const handleGridClick = (
 
     if (localY < slotSize / 2 && room?.slots?.bottom) {
       if (localX > leftSlotStart && localX < leftSlotEnd) {
-        return onClickSlot(room, 'bottom', 0);
+        return onClickSlot(room, 'bottom', WallSide.LEFT);
       }
 
       if (localX > rightSlotStart && localX < rightSlotEnd) {
-        return onClickSlot(room, 'bottom', 1);
+        return onClickSlot(room, 'bottom', WallSide.RIGHT);
       }
     }
 
     if (localY > height - slotSize / 2 && room?.slots?.top) {
       if (localX > leftSlotStart && localX < leftSlotEnd) {
-        return onClickSlot(room, 'top', 0);
+        return onClickSlot(room, 'top', WallSide.LEFT);
       }
 
       if (localX > rightSlotStart && localX < rightSlotEnd) {
-        return onClickSlot(room, 'top', 1);
+        return onClickSlot(room, 'top', WallSide.RIGHT);
       }
     }
 
     if (localX < slotSize / 2 && room?.slots?.left) {
       if (localY > topSlotStart && localY < topSlotEnd) {
-        return onClickSlot(room, 'left', 0);
+        return onClickSlot(room, 'left', WallSide.LEFT);
       }
 
       if (localY > bottomSlotStart && localY < bottomSlotEnd) {
-        return onClickSlot(room, 'left', 1);
+        return onClickSlot(room, 'left', WallSide.RIGHT);
       }
     }
 
     if (localX > width - slotSize / 2 && room?.slots?.right) {
       if (localY > topSlotStart && localY < topSlotEnd) {
-        return onClickSlot(room, 'right', 0);
+        return onClickSlot(room, 'right', WallSide.LEFT);
       }
 
       if (localY > bottomSlotStart && localY < bottomSlotEnd) {
-        return onClickSlot(room, 'right', 1);
+        return onClickSlot(room, 'right', WallSide.RIGHT);
       }
     }
   }

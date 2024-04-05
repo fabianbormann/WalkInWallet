@@ -3,17 +3,17 @@ export type NftData = {
 };
 
 export type Wall = 'top' | 'bottom' | 'left' | 'right';
-export enum Side {
-  LEFT = 0,
-  RIGHT = 1,
-  BOTH = 2,
+export enum WallSide {
+  LEFT = 'leftSide',
+  RIGHT = 'rightSide',
+  BOTH = 'bothSides',
 }
 
 export type RoomElementPosition = {
   row: number;
   col: number;
   wall: Wall;
-  side: Side;
+  side: WallSide;
   hasNeighbour: boolean;
 };
 
@@ -110,11 +110,22 @@ export enum RoomType {
   ROOM_CLOSED,
 }
 
+export enum SlotAllocation {
+  OCCUPIED,
+  FREE,
+  BLOCKED,
+}
+
+export type Slot = {
+  leftSide: SlotAllocation;
+  rightSide: SlotAllocation;
+};
+
 export type Slots = {
-  top?: Array<number>;
-  bottom?: Array<number>;
-  left?: Array<number>;
-  right?: Array<number>;
+  top?: Slot;
+  bottom?: Slot;
+  left?: Slot;
+  right?: Slot;
 };
 
 export type Room = {
