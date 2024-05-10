@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.4](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.3...v1.6.4) (2024-05-10)
+
+
+### Bug Fixes
+
+* adapt new Koios api response to fix loading the NFT list ([b08e855](https://github.com/fabianbormann/WalkInWallet/commit/b08e855c748b1931fe6e58eebfa5f906aba82433))
+
 ## [1.6.3](https://github.com/fabianbormann/WalkInWallet/compare/v1.6.2...v1.6.3) (2024-03-11)
 
 
