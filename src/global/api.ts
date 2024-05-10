@@ -71,7 +71,7 @@ export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
       await defaultAxios.post(`${koiosBaseUrl}account_assets`, {
         _stake_addresses: [stakeAddress],
       })
-    ).data[0] as NftFetchResponse;
+    ).data as NftFetchResponse[];
   } catch (error) {
     const axiosError = error as AxiosError;
     console.log(axiosError);
@@ -83,7 +83,7 @@ export const getNFTsFromStakeAddress = async (stakeAddress: string) => {
 
   return (
     await defaultAxios.post(`${koiosBaseUrl}asset_info`, {
-      _asset_list: nftFetchResponse.asset_list.map((asset) => [
+      _asset_list: nftFetchResponse.map((asset) => [
         asset.policy_id,
         asset.asset_name,
       ]),

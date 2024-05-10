@@ -34,13 +34,11 @@ export type HeaderProps = {
 
 export type NftFetchResponse = {
   stake_address: string;
-  asset_list: Array<{
-    decimals: number;
-    quantity: number;
-    policy_id: string;
-    asset_name: string;
-    fingerprint: string;
-  }>;
+  decimals: number;
+  quantity: number;
+  policy_id: string;
+  asset_name: string;
+  fingerprint: string;
 };
 
 export type NFTDetail = {
